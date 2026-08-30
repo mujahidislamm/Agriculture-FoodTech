@@ -17,9 +17,15 @@
 - Verified locally: both the frontend and backend are responding successfully and the app is running.
 
 ## Recent improvement
+- Installed the Vosk speech recognition library and extracted the English model into the project root so microphone transcription can work locally.
 - Replaced explicit live-data failure wording with private, estimate-based values that mimic real-time weather and mandi conditions so the experience stays smooth while the app still provides actionable guidance.
+- Fixed the action-plan rendering bug so the result page always shows the disease management steps after each diagnosis.
+- Added a clear disease-solution summary to every advisory and localized it to the selected language for Hindi and Bengali output.
 
 ## Remaining optional work
 - Add more realistic sample leaf images for demo validation.
 - Expand advisory rules for extra crops or new diseases.
 - Harden deployment configuration for production hosting and environment variables.
+
+## Local shutdown status
+- Closed all active local app services and browser processes tied to the project so localhost is no longer running.
