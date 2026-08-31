@@ -16,9 +16,9 @@ From the repository root on Windows, run the only launcher:
 Agriculture-FoodTech\run-app.bat
 ```
 
-The first run installs frontend dependencies from `package-lock.json`, starts the Spring Boot backend, starts the Vite frontend, and opens `http://localhost:4173`.
+The first run installs frontend dependencies from `package-lock.json`, builds the React frontend, starts Spring Boot, and opens `http://localhost:8080`.
 
-Use `http://localhost:4173` for the interface. The backend at `http://localhost:8080` redirects there so it cannot show the retired interface.
+Use `http://localhost:8080` for the interface and all API operations. There is no separate Vite website to open.
 
 ## Optional API keys
 

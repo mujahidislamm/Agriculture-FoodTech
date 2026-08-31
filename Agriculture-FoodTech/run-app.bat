@@ -2,7 +2,11 @@
 setlocal
 cd /d "%~dp0"
 
-echo Starting FasalSathi at http://localhost:8080
+set "APP_URL=http://localhost:8080"
+set "BACKEND_DIR=%~dp0..\frontend\desktop-tutorial"
+set "FRONTEND_DIR=%BACKEND_DIR%\frontend"
+
+echo Starting FasalSathi at %APP_URL%
 
 set "JAVA_HOME="
 for %%D in (
@@ -46,6 +50,48 @@ if errorlevel 1 (
   exit /b 1
 )
 
-start "FasalSathi Web App" http://localhost:8080
-call mvn spring-boot:run
+where npm >nul 2>nul
+if errorlevel 1 (
+  echo Node.js and npm were not found. Install Node.js, then run this file again.
+  pause
+  exit /b 1
+)
+
+if not exist "%BACKEND_DIR%\pom.xml" (
+  echo Backend project not found: %BACKEND_DIR%
+  pause
+  exit /b 1
+)
+
+if not exist "%FRONTEND_DIR%\package.json" (
+  echo Frontend project not found: %FRONTEND_DIR%
+  pause
+  exit /b 1
+)
+
+echo [1/3] Building the React frontend...
+pushd "%FRONTEND_DIR%"
+if not exist node_modules call npm ci
+if errorlevel 1 goto :build_failed
+call npm run build
+if errorlevel 1 goto :build_failed
+popd
+
+echo [2/3] Starting the backend and website...
+start "FasalSathi" cmd /k "cd /d ""%BACKEND_DIR%"" && mvn spring-boot:run"
+
+echo [3/3] Opening %APP_URL%...
+timeout /t 8 /nobreak >nul
+start "" "%APP_URL%"
+
+echo.
+echo FasalSathi is running at %APP_URL%
+echo Close the FasalSathi terminal window to stop it.
 pause
+exit /b 0
+
+:build_failed
+popd
+echo Frontend build failed. Fix the errors above and run this file again.
+pause
+exit /b 1
