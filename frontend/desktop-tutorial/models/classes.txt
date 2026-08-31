@@ -1,0 +1,43 @@
+Apple Scab Leaf
+Apple leaf
+Apple rust leaf
+Bell_pepper leaf
+Bell_pepper leaf spot
+Blueberry leaf
+Cherry leaf
+Corn Gray leaf spot
+Corn leaf blight
+Corn rust leaf
+Peach leaf
+Pepper__bell___Bacterial_spot
+Pepper__bell___healthy
+Potato leaf early blight
+Potato leaf late blight
+Potato___Early_blight
+Potato___Late_blight
+Potato___healthy
+Raspberry leaf
+Soyabean leaf
+Squash Powdery mildew leaf
+Strawberry leaf
+Tomato Early blight leaf
+Tomato Septoria leaf spot
+Tomato leaf
+Tomato leaf bacterial spot
+Tomato leaf late blight
+Tomato leaf mosaic virus
+Tomato leaf yellow virus
+Tomato mold leaf
+Tomato two spotted spider mites leaf
+Tomato_Bacterial_spot
+Tomato_Early_blight
+Tomato_Late_blight
+Tomato_Leaf_Mold
+Tomato_Septoria_leaf_spot
+Tomato_Spider_mites_Two_spotted_spider_mite
+Tomato__Target_Spot
+Tomato__Tomato_YellowLeaf__Curl_Virus
+Tomato__Tomato_mosaic_virus
+Tomato_healthy
+grape leaf
+grape leaf black rot

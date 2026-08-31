@@ -1,0 +1,29 @@
+Blight
+Brinjal___Diseased
+Brinjal___Healthy
+Common_Rust
+Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot
+Corn_(maize)___Common_rust_
+Corn_(maize)___Northern_Leaf_Blight
+Corn_(maize)___healthy
+Gray_Leaf_Spot
+Healthy
+Potato___Early_blight
+Potato___Late_blight
+Potato___healthy
+Rice___Bacterial_Leaf_Blight
+Rice___Brown_Spot
+Rice_bacterial_leaf_blight
+Rice_brown_spot
+Rice_healthy
+Rice_leaf_blast
+Tomato___Bacterial_spot
+Tomato___Early_blight
+Tomato___Late_blight
+Tomato___healthy
+Wheat Brown rust
+Wheat Healthy
+Wheat Loose Smut
+Wheat Yellow rust
+septoria
+stripe_rust

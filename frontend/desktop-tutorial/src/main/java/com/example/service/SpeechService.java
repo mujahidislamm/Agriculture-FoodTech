@@ -20,7 +20,9 @@ import java.util.regex.Pattern;
 public class SpeechService {
 
     private static final List<String> MODEL_PATHS = List.of(
-            "C:/Users/admin/OneDrive/Desktop/Apna College/vosk-model-small-en-us-0.15",
+            "vosk-model-small-en-us-0.15",
+            "../../vosk-model-small-en-us-0.15",
+            "../vosk-model-small-en-us-0.15",
             "D:/vosk-model-small-en-us-0.15",
             "C:/vosk-model-small-en-us-0.15",
             "/opt/vosk-model-small-en-us-0.15"
