@@ -1,0 +1,206 @@
+package com.example.controller;
+
+import com.example.dto.CropMetadataDTO;
+import com.example.dto.PredictionResponseDTO;
+import com.example.entity.PredictionLog;
+import com.example.repository.PredictionLogRepository;
+import com.example.service.AdvisoryService;
+import com.example.service.MandiUpdates;
+import com.example.service.ModelInferenceService;
+import com.example.service.SpeechService;
+import com.example.service.TranslationService;
+import com.example.service.WBCropKnowledgeBase;
+import com.example.service.WeatherService;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping("/api/v1")
+@CrossOrigin(origins = "*")
+public class CropPredictionController {
+
+    private final ModelInferenceService modelInferenceService;
+    private final AdvisoryService advisoryService;
+    private final WeatherService weatherService;
+    private final WBCropKnowledgeBase knowledgeBase;
+    private final TranslationService translationService;
+    private final PredictionLogRepository predictionLogRepository;
+    private final SpeechService speechService;
+    private final MandiUpdates mandiUpdates;
+
+    public CropPredictionController(ModelInferenceService modelInferenceService,
+                                    AdvisoryService advisoryService,
+                                    WeatherService weatherService,
+                                    WBCropKnowledgeBase knowledgeBase,
+                                    TranslationService translationService,
+                                    PredictionLogRepository predictionLogRepository,
+                                    SpeechService speechService,
+                                    MandiUpdates mandiUpdates) {
+        this.modelInferenceService = modelInferenceService;
+        this.advisoryService = advisoryService;
+        this.weatherService = weatherService;
+        this.knowledgeBase = knowledgeBase;
+        this.translationService = translationService;
+        this.predictionLogRepository = predictionLogRepository;
+        this.speechService = speechService;
+        this.mandiUpdates = mandiUpdates;
+    }
+
+    /**
+     * Main diagnosis endpoint — accepts leaf image + farm metadata,
+     * returns full explainable advisory with translation.
+     */
+    @PostMapping(value = "/diagnose", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public PredictionResponseDTO diagnose(
+            @RequestPart("image") MultipartFile image,
+            @RequestPart(value = "cropType", required = false) String cropType,
+            @RequestPart(value = "cropStage", required = false) String cropStage,
+            @RequestPart(value = "district", required = false) String district,
+            @RequestPart(value = "latitude", required = false) String latitude,
+            @RequestPart(value = "longitude", required = false) String longitude,
+            @RequestPart(value = "observations", required = false) String observations,
+            @RequestPart(value = "language", required = false) String language) {
+
+        // 1. Run model inference
+        Map<String, Double> predictions = modelInferenceService.predict(image);
+
+        // 2. Resolve district from GPS if not specified
+        Double lat = parseDouble(latitude);
+        Double lng = parseDouble(longitude);
+        if ((district == null || district.isBlank()) && lat != null && lng != null) {
+            WBCropKnowledgeBase.DistrictInfo nearest = knowledgeBase.findNearestDistrict(lat, lng);
+            if (nearest != null) district = nearest.name();
+        }
+
+        // 3. Get weather context
+        String weather = weatherService.getWeatherContext(lat, lng);
+
+        // 4. Build full advisory
+        PredictionResponseDTO response = advisoryService.buildAdvisory(
+                predictions, cropType, cropStage, district,
+                observations, weather,
+                language != null ? language : "en");
+
+        // 5. Log prediction
+        try {
+            predictionLogRepository.save(new PredictionLog(
+                    cropType, cropStage, district, lat, lng,
+                    observations, response.primaryDiagnosis(),
+                    response.confidence(), response.diagnosisType(),
+                    response.escalateToExpert(),
+                    language != null ? language : "en"));
+        } catch (Exception ignored) {
+            // Don't fail the response if logging fails
+        }
+
+        return response;
+    }
+
+    /**
+     * Returns all WB districts for the mobile UI dropdown.
+     */
+    @GetMapping("/districts")
+    public List<Map<String, Object>> getDistricts() {
+        return knowledgeBase.getAllDistricts().values().stream()
+                .map(d -> {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("name", d.name());
+                    m.put("latitude", d.latitude());
+                    m.put("longitude", d.longitude());
+                    m.put("zone", d.agroClimaticZone());
+                    m.put("majorCrops", d.majorCrops());
+                    m.put("kvkPhone", d.kvkPhone());
+                    return m;
+                })
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Returns all WB crops with stages for the mobile UI.
+     */
+    @GetMapping("/crops")
+    public List<Map<String, Object>> getCrops() {
+        return knowledgeBase.getAllCrops().values().stream()
+                .map(c -> {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("name", c.name());
+                    m.put("stages", c.stages());
+                    m.put("kharifSeason", c.kharifSeason());
+                    m.put("rabiSeason", c.rabiSeason());
+                    m.put("commonDiseases", c.commonDiseases());
+                    return m;
+                })
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Returns all translation strings for frontend i18n.
+     */
+    @GetMapping("/translations")
+    public Map<String, Map<String, String>> getTranslations() {
+        return translationService.getAllPhrases();
+    }
+
+    @GetMapping("/weather")
+    public Map<String, Object> weather(@RequestParam(value = "lat", required = false) Double latitude,
+                                      @RequestParam(value = "lon", required = false) Double longitude) {
+        return weatherService.getLiveWeather(latitude, longitude);
+    }
+
+    @GetMapping("/kvk")
+    public Map<String, Object> kvk(@RequestParam(value = "district", required = false) String district,
+                                  @RequestParam(value = "lat", required = false) Double latitude,
+                                  @RequestParam(value = "lon", required = false) Double longitude) {
+        return knowledgeBase.getKvkDetails(district, latitude, longitude);
+    }
+
+    @GetMapping("/mandi-prices")
+    public Map<String, Object> mandiPrices(@RequestParam(value = "crop", required = false) String crop,
+                                          @RequestParam(value = "state", required = false) String state,
+                                          @RequestParam(value = "district", required = false) String district) {
+        return mandiUpdates.getLivePrices(crop, state, district, 8);
+    }
+
+    @PostMapping(value = "/speech/transcribe", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Map<String, Object> transcribe(@RequestPart("audio") MultipartFile audio,
+                                         @RequestPart(value = "language", required = false) String language) {
+        try {
+            String transcript = speechService.transcribe(audio);
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("transcript", transcript);
+            response.put("language", language != null && !language.isBlank() ? language : "en");
+            return response;
+        } catch (Exception ex) {
+            Map<String, Object> error = new LinkedHashMap<>();
+            error.put("transcript", "");
+            error.put("error", ex.getMessage());
+            error.put("language", language != null && !language.isBlank() ? language : "en");
+            return error;
+        }
+    }
+
+    /**
+     * Health check for PWA connectivity detection.
+     */
+    @GetMapping("/health")
+    public Map<String, Object> health() {
+        Map<String, Object> h = new LinkedHashMap<>();
+        h.put("status", "UP");
+        h.put("service", "FasalSathi");
+        h.put("timestamp", System.currentTimeMillis());
+        return h;
+    }
+
+    private Double parseDouble(String value) {
+        if (value == null || value.isBlank()) return null;
+        try {
+            return Double.parseDouble(value);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+}

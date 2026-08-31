@@ -1,0 +1,9 @@
+# Dependencies and local build caches
+**/node_modules/
+**/.vite/
+**/__pycache__/
+**/target/
+
+# Local application data and trained models
+**/data/
+**/models/

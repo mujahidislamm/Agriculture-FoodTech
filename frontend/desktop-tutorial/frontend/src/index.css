@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Custom base styles ───────────────────────────────────── */
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-gray-50 font-sans text-gray-800;
+  }
+}
+
+/* ── Reusable component utilities ─────────────────────────── */
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600
+           px-6 py-3 text-base font-semibold text-white shadow-sm
+           transition-all duration-200
+           hover:bg-emerald-700 hover:shadow-md
+           focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2
+           active:scale-[0.98]
+           disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-600
+           px-6 py-3 text-base font-semibold text-emerald-700
+           transition-all duration-200
+           hover:bg-emerald-50
+           focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2
+           active:scale-[0.98];
+  }
+
+  .card {
+    @apply rounded-xl border border-gray-200 bg-white p-6 shadow-sm;
+  }
+
+  .input-field {
+    @apply w-full rounded-lg border border-gray-300 px-4 py-3 text-base
+           transition-colors
+           placeholder:text-gray-400
+           focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20;
+  }
+
+  .select-field {
+    @apply w-full appearance-none rounded-lg border border-gray-300 bg-white
+           px-4 py-3 text-base
+           transition-colors
+           focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20;
+  }
+
+  .section-title {
+    @apply text-2xl font-bold text-gray-900;
+  }
+}
+
+/* ── Confidence gauge animation ──────────────────────────── */
+
+@keyframes gauge-fill {
+  from {
+    stroke-dashoffset: 283;
+  }
+}
+
+.gauge-circle {
+  animation: gauge-fill 1.2s ease-out forwards;
+}
+
+/* ── Drag-and-drop zone highlight ────────────────────────── */
+
+.drop-zone-active {
+  @apply border-emerald-500 bg-emerald-50;
+}
