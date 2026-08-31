@@ -10,7 +10,7 @@ This repository contains the complete runnable source for the crop-disease, mark
 
 ## Run the full web application
 
-From the repository root on Windows, run:
+From the repository root on Windows, run the only launcher:
 
 ```bat
 Agriculture-FoodTech\run-app.bat
@@ -18,13 +18,7 @@ Agriculture-FoodTech\run-app.bat
 
 The first run installs frontend dependencies from `package-lock.json`, starts the Spring Boot backend, starts the Vite frontend, and opens `http://localhost:4173`.
 
-## Run the standalone backend
-
-```bat
-Agriculture-FoodTech\run project.bat
-```
-
-It serves the application at `http://localhost:8080`.
+Use `http://localhost:4173` for the interface. The backend at `http://localhost:8080` redirects there so it cannot show the retired interface.
 
 ## Optional API keys
 
@@ -35,3 +29,4 @@ The application starts without API keys. To enable live weather and mandi-price 
 - Crop inference models are stored in each backend's `models/` directory.
 - The Vosk model is stored at `vosk-model-small-en-us-0.15/` and is resolved relative to the cloned repository.
 - Training data is intentionally excluded; use `train_model.py` with your own dataset if you need to retrain a model.
+- To undo the launcher/UI change, use the `before-single-launcher-ui-fix` Git tag that is published with it.
