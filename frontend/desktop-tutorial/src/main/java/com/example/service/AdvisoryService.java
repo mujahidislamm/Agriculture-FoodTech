@@ -382,7 +382,7 @@ public class AdvisoryService {
         if ("en".equals(lang)) return null; // No translation needed
 
         String localizedSolution = solutionSummary != null
-                ? translationService.translateActions(List.of(solutionSummary), lang).getFirst()
+                ? translationService.translateActions(List.of(solutionSummary), lang).get(0)
                 : null;
 
         return new TranslatedAdvisoryDTO(

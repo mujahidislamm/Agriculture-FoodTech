@@ -71,26 +71,149 @@ export default function HomePage() {
     }, () => { setNotice(text.locationFail); setLoading(false); }, { timeout: 10000, maximumAge: 300000 });
   };
 
-  return <div className="min-h-screen bg-stone-50 text-slate-800">
+  return <div className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-slate-100 text-slate-800">
+    {/* Hero Section */}
     <section className="relative overflow-hidden bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-700 px-4 py-14 text-white sm:py-20">
       <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-lime-300/10 blur-3xl" />
+      <div className="absolute -left-32 bottom-0 h-80 w-80 rounded-full bg-teal-300/10 blur-3xl" />
       <div className="relative mx-auto grid max-w-7xl gap-10 lg:grid-cols-[1.25fr_.75fr] lg:items-center">
-        <div><span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold tracking-wider text-emerald-50">{text.tag}</span><h1 className="mt-5 max-w-3xl text-4xl font-bold leading-tight sm:text-5xl">{text.title}</h1><p className="mt-4 max-w-2xl text-base leading-7 text-emerald-50 sm:text-lg">{text.intro}</p><div className="mt-7 flex flex-wrap gap-3"><button onClick={() => navigate('/diagnose')} className="rounded-xl bg-lime-300 px-5 py-3 font-bold text-emerald-950 shadow-lg transition hover:bg-lime-200">{text.diagnose}</button><a href="#farm-tools" className="rounded-xl border border-white/30 bg-white/10 px-5 py-3 font-semibold text-white transition hover:bg-white/20">{text.explore}</a></div></div>
-        <div className="grid grid-cols-3 gap-3 rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm"><HeroStat icon="☀" title={text.tabs[0]} detail={text.weatherDetail} /><HeroStat icon="₹" title={text.tabs[1]} detail={text.priceDetail} /><HeroStat icon="⌖" title={text.tabs[2]} detail={text.shopDetail} /></div>
+        <div>
+          <span className="inline-block rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold tracking-wider text-emerald-50 backdrop-blur-sm">
+            {text.tag}
+          </span>
+          <h1 className="mt-5 max-w-3xl text-4xl font-bold leading-tight sm:text-5xl">
+            {text.title}
+          </h1>
+          <p className="mt-4 max-w-2xl text-base leading-7 text-emerald-50 sm:text-lg">
+            {text.intro}
+          </p>
+          <div className="mt-8 flex flex-wrap gap-4">
+            <button 
+              onClick={() => navigate('/diagnose')} 
+              className="rounded-xl bg-lime-300 px-6 py-3 font-bold text-emerald-950 shadow-lg hover:shadow-xl hover:bg-lime-200 transition-all duration-200 transform hover:scale-105"
+            >
+              {text.diagnose}
+            </button>
+            <a 
+              href="#farm-tools" 
+              className="rounded-xl border-2 border-white/40 bg-white/10 px-6 py-3 font-semibold text-white backdrop-blur-sm hover:bg-white/20 transition-all duration-200"
+            >
+              {text.explore}
+            </a>
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-4 rounded-2xl border border-white/20 bg-white/10 p-6 backdrop-blur-md">
+          <HeroStat icon="☀" title={text.tabs[0]} detail={text.weatherDetail} />
+          <HeroStat icon="₹" title={text.tabs[1]} detail={text.priceDetail} />
+          <HeroStat icon="⌖" title={text.tabs[2]} detail={text.shopDetail} />
+        </div>
       </div>
     </section>
-    <section id="farm-tools" className="mx-auto max-w-7xl px-4 py-10 sm:py-14">
-      <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><p className="text-sm font-bold uppercase tracking-widest text-emerald-700">{text.dashboard}</p><h2 className="mt-1 text-3xl font-bold text-slate-900">{text.local}</h2></div><p className="max-w-md text-sm leading-6 text-slate-500">{text.select}</p></div>
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-        <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end"><label className="block text-sm font-semibold text-slate-700">{text.area}<select value={district} onChange={(event) => setDistrict(event.target.value)} className="mt-2 block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100">{districts.map((item) => <option key={item.name} value={item.name}>{item.name}</option>)}</select></label><button onClick={useLocation} className="rounded-xl border border-emerald-700 px-4 py-3 text-sm font-bold text-emerald-800 transition hover:bg-emerald-50">⌖ {text.useLocation}</button></div>
-        <div className="mt-6 flex gap-2 overflow-x-auto border-b border-slate-200 pb-px" role="tablist">{tabs.map(([id, icon], index) => <button key={id} role="tab" aria-selected={tab === id} onClick={() => { setTab(id); setNotice(''); }} className={`whitespace-nowrap rounded-t-xl px-4 py-3 text-sm font-bold transition ${tab === id ? 'bg-emerald-700 text-white' : 'text-slate-600 hover:bg-emerald-50'}`}><span className="mr-2">{icon}</span>{text.tabs[index]}</button>)}</div>
-        {notice && <div className="mt-5 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">{notice}</div>}
-        {tab === 'weather' && <Weather weather={weather} district={district} loading={loading} text={text} />}
-        {tab === 'market' && <Market crop={crop} setCrop={setCrop} market={market} week={week} district={district} loading={loading} text={text} />}
-        {tab === 'shops' && <Shops district={district} text={text} />}
+
+    {/* Dashboard Section */}
+    <section id="farm-tools" className="mx-auto max-w-7xl px-4 py-14 sm:py-16">
+      <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-widest text-emerald-600">
+            {text.dashboard}
+          </p>
+          <h2 className="mt-2 text-3xl font-bold text-slate-900 sm:text-4xl">
+            {text.local}
+          </h2>
+        </div>
+        <p className="max-w-md text-sm leading-6 text-slate-500">
+          {text.select}
+        </p>
+      </div>
+      
+      {/* Dashboard Card */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-md hover:shadow-lg transition-shadow">
+        {/* District Selection */}
+        <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
+              {text.area}
+            </label>
+            <select 
+              value={district} 
+              onChange={(event) => setDistrict(event.target.value)} 
+              className="w-full rounded-xl border-2 border-slate-300 bg-white px-4 py-3 text-base font-medium text-slate-900 outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100 transition-all"
+            >
+              {districts.map((item) => (
+                <option key={item.name} value={item.name}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button 
+            onClick={useLocation} 
+            className="rounded-xl border-2 border-emerald-600 bg-white px-5 py-3 text-sm font-bold text-emerald-700 transition-all hover:bg-emerald-50 hover:shadow-md"
+          >
+            ⌖ {text.useLocation}
+          </button>
+        </div>
+
+        {/* Tabs */}
+        <div className="mt-8 border-b-2 border-slate-200" role="tablist">
+          <div className="flex gap-1 overflow-x-auto">
+            {tabs.map(([id, icon], index) => (
+              <button
+                key={id}
+                role="tab"
+                aria-selected={tab === id}
+                onClick={() => {
+                  setTab(id);
+                  setNotice('');
+                }}
+                className={`whitespace-nowrap px-6 py-4 text-sm font-bold transition-all border-b-2 -mb-0.5 ${
+                  tab === id
+                    ? 'border-emerald-600 text-emerald-700 bg-emerald-50'
+                    : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                }`}
+              >
+                <span className="mr-2 text-lg">{icon}</span>
+                {text.tabs[index]}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Notice Alert */}
+        {notice && (
+          <div className="mt-6 rounded-lg bg-amber-50 border-l-4 border-amber-500 px-4 py-3 text-sm text-amber-900 font-medium">
+            {notice}
+          </div>
+        )}
+
+        {/* Tab Content */}
+        <div className="mt-8">
+          {tab === 'weather' && <Weather weather={weather} district={district} loading={loading} text={text} />}
+          {tab === 'market' && <Market crop={crop} setCrop={setCrop} market={market} week={week} district={district} loading={loading} text={text} />}
+          {tab === 'shops' && <Shops district={district} text={text} />}
+        </div>
       </div>
     </section>
-    <section className="border-y border-emerald-100 bg-emerald-50 px-4 py-10"><div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-5 text-center sm:flex-row sm:text-left"><div><p className="text-lg font-bold text-emerald-950">{text.help}</p><p className="mt-1 text-sm text-emerald-800">{text.helpCopy}</p></div><button onClick={() => navigate('/diagnose')} className="rounded-xl bg-emerald-700 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-800">{text.start}</button></div></section>
+
+    {/* CTA Section */}
+    <section className="border-t-2 border-b-2 border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 px-4 py-12">
+      <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-6 sm:flex-row">
+        <div>
+          <p className="text-lg font-bold text-emerald-950">
+            {text.help}
+          </p>
+          <p className="mt-2 text-sm text-emerald-700">
+            {text.helpCopy}
+          </p>
+        </div>
+        <button 
+          onClick={() => navigate('/diagnose')} 
+          className="rounded-xl bg-emerald-600 px-8 py-3 text-sm font-bold text-white shadow-lg hover:shadow-xl hover:bg-emerald-700 transition-all duration-200 transform hover:scale-105 whitespace-nowrap"
+        >
+          {text.start}
+        </button>
+      </div>
+    </section>
   </div>;
 }
 

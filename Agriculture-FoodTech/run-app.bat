@@ -1,5 +1,5 @@
 @echo off
-setlocal
+setlocal enabledelayedexpansion
 cd /d "%~dp0"
 
 set "APP_URL=http://localhost:8080"
@@ -8,11 +8,18 @@ set "FRONTEND_DIR=%BACKEND_DIR%\frontend"
 
 REM This is the only website that should open for the app.
 REM Do not open any alternate index files or separate frontend pages.
+cls
+echo.
 echo =====================================================
-echo MAIN WEBSITE: %APP_URL%
-echo ONLY OPEN THIS URL: %APP_URL%
+echo.
+echo   FasalSathi - Agricultural AI Advisor
+echo.
+echo   MAIN WEBSITE: %APP_URL%
+echo.
 echo =====================================================
+echo.
 echo Starting FasalSathi at %APP_URL%
+echo.
 
 set "JAVA_HOME="
 for %%D in (
