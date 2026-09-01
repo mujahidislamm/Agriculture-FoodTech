@@ -4,5 +4,6 @@
         "git -C \"C:\\Users\\admin\\OneDrive\\Desktop\\Apna": true,
         "git -C 'C:\\Users\\admin\\OneDrive\\Desktop\\Apna": true,
         "gh": true
-    }
+    },
+    "java.compile.nullAnalysis.mode": "automatic"
 }

@@ -1,6 +1,7 @@
 # Dependencies and local build caches
 **/node_modules/
 **/.vite/
+tools/
 **/__pycache__/
 **/target/
 

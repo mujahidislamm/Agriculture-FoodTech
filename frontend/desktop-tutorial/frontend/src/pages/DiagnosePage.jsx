@@ -126,6 +126,45 @@ export default function DiagnosePage() {
 
   const labelText = localizedLabels[language] || localizedLabels.en;
 
+  const cropNameMap = {
+    en: {
+      Rice: 'Rice', Potato: 'Potato', Jute: 'Jute', Mustard: 'Mustard', Tea: 'Tea', Tomato: 'Tomato',
+      Brinjal: 'Brinjal', Chilli: 'Chilli', Mango: 'Mango', Wheat: 'Wheat', Maize: 'Maize',
+    },
+    bn: {
+      Rice: 'ধান', Potato: 'আলু', Jute: 'পাট', Mustard: 'সরষে', Tea: 'চা', Tomato: 'টমেটো',
+      Brinjal: 'বেগুন', Chilli: 'লঙ্কা', Mango: 'আম', Wheat: 'গম', Maize: 'ভুট্টা',
+    },
+    hi: {
+      Rice: 'धान', Potato: 'आलू', Jute: 'जूट', Mustard: 'सरसों', Tea: 'चाय', Tomato: 'टमाटर',
+      Brinjal: 'बैंगन', Chilli: 'मिर्च', Mango: 'आम', Wheat: 'गेहूं', Maize: 'मक्का',
+    },
+  };
+
+  const cropStageMap = {
+    en: {
+      Seedling: 'Seedling', Vegetative: 'Vegetative', Flowering: 'Flowering', Fruiting: 'Fruiting',
+      'Early Growth': 'Early Growth', 'Tillering': 'Tillering', 'Grain Filling': 'Grain Filling',
+      'Tuber Initiation': 'Tuber Initiation', 'Tuber Bulking': 'Tuber Bulking', Maturity: 'Maturity',
+      Harvest: 'Harvest', 'Reproductive Stage': 'Reproductive Stage', 'Late Growth': 'Late Growth',
+    },
+    bn: {
+      Seedling: 'চারা', Vegetative: 'বৃদ্ধি পর্যায়', Flowering: 'ফুল ধরা', Fruiting: 'ফল ধরা',
+      'Early Growth': 'শুরুতে বৃদ্ধি', 'Tillering': 'কুশি উৎপাদন', 'Grain Filling': 'দানা ভরা',
+      'Tuber Initiation': 'কন্দ তৈরি শুরু', 'Tuber Bulking': 'কন্দ বৃদ্ধি', Maturity: 'পরিপক্কতা',
+      Harvest: 'ফসল কাটার সময়', 'Reproductive Stage': 'প্রজনন পর্যায়', 'Late Growth': 'শেষের বৃদ্ধি',
+    },
+    hi: {
+      Seedling: 'पौधा', Vegetative: 'वानस्पतिक', Flowering: 'फूल आना', Fruiting: 'फल लगना',
+      'Early Growth': 'आरंभिक वृद्धि', 'Tillering': 'कल्ले निकलना', 'Grain Filling': 'दाना भरना',
+      'Tuber Initiation': 'कंद बनना शुरू', 'Tuber Bulking': 'कंद बढ़ना', Maturity: 'परिपक्वता',
+      Harvest: 'कटाई', 'Reproductive Stage': 'प्रजनन चरण', 'Late Growth': 'अंतिम वृद्धि',
+    },
+  };
+
+  const translateCropName = (name) => cropNameMap[language]?.[name] || cropNameMap.en?.[name] || name;
+  const translateStageName = (stage) => cropStageMap[language]?.[stage] || cropStageMap.en?.[stage] || stage;
+
   const getLocalizedError = (message) => {
     const lower = (message || '').toLowerCase();
     if (lower.includes('microphone') || lower.includes('permission')) return labelText.micUnavailable;
@@ -416,7 +455,7 @@ export default function DiagnosePage() {
                 >
                   <option value="">{language === 'bn' ? 'ফসল নির্বাচন করুন' : language === 'hi' ? 'फसल चुनें' : 'Select Crop'}</option>
                   {crops.map(c => (
-                    <option key={c.name} value={c.name}>{c.name}</option>
+                    <option key={c.name} value={c.name}>{translateCropName(c.name)}</option>
                   ))}
                 </select>
               </div>
@@ -431,7 +470,7 @@ export default function DiagnosePage() {
                 >
                   <option value="">{language === 'bn' ? 'পর্যায় নির্বাচন করুন' : language === 'hi' ? 'चरण चुनें' : 'Select Stage'}</option>
                   {stages.map(s => (
-                    <option key={s} value={s}>{s}</option>
+                    <option key={s} value={s}>{translateStageName(s)}</option>
                   ))}
                 </select>
               </div>
