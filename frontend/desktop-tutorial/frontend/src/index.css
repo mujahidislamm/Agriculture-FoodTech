@@ -76,3 +76,36 @@
 .drop-zone-active {
   @apply border-emerald-500 bg-emerald-50;
 }
+
+/* The product is intentionally dark-only. These shared overrides keep the
+   existing page components readable without requiring a theme toggle. */
+html {
+  color-scheme: dark;
+  background: #08130f;
+}
+
+body {
+  @apply bg-slate-950 text-slate-100;
+}
+
+.bg-white { background-color: #13231d !important; }
+.bg-white\/80 { background-color: rgba(19, 35, 29, 0.9) !important; }
+.bg-gray-50, .hover\:bg-gray-50:hover { background-color: #172b24 !important; }
+.bg-gray-100, .bg-slate-50, .bg-slate-100 { background-color: #1b3129 !important; }
+.bg-gradient-to-b.from-white { background-image: linear-gradient(to bottom, #0b1b14, #0d2119, #10291f) !important; }
+.bg-emerald-50, .hover\:bg-emerald-50:hover { background-color: #12372b !important; }
+.bg-emerald-100 { background-color: #1a4938 !important; }
+.text-gray-900, .text-gray-800, .text-gray-700, .text-slate-900, .text-slate-800 { color: #e6f2ec !important; }
+.text-gray-600, .text-slate-600 { color: #b4c7bd !important; }
+.text-gray-500, .text-slate-500 { color: #8da69a !important; }
+.text-emerald-900, .text-emerald-800 { color: #b9f3d0 !important; }
+.text-emerald-700 { color: #7ee2a8 !important; }
+.border-gray-100, .border-gray-200, .border-gray-300, .border-slate-200 { border-color: #2b4439 !important; }
+.border-emerald-200 { border-color: #286b4d !important; }
+.divide-gray-100 > :not([hidden]) ~ :not([hidden]) { border-color: #2b4439 !important; }
+.input-field, .select-field { background-color: #0f211a !important; color: #e6f2ec !important; border-color: #385448 !important; }
+.select-field option { background-color: #13231d; color: #e6f2ec; }
+.input-field::placeholder { color: #789287; }
+.card { background-color: #13231d !important; border-color: #2b4439 !important; }
+.drop-zone-active { background-color: #12372b !important; }
+.shadow-sm, .shadow-md, .shadow-lg { --tw-shadow-color: #0008; }

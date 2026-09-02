@@ -5,7 +5,7 @@
             "label": "Run FasalSathi Web App",
             "type": "shell",
             "windows": {
-                "command": "\"${workspaceFolder}\\run project.bat\""
+                "command": "\"${workspaceFolder}\\run-app.bat\""
             },
             "options": {
                 "cwd": "${workspaceFolder}"

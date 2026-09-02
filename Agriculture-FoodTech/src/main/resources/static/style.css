@@ -1,16 +1,16 @@
 :root {
     --green: #1a6b3c;
     --green-dark: #0a1a0f;
-    --green-light: #e7f5ec;
+    --green-light: #173d2b;
     --amber: #b9770a;
     --red: #b3261e;
-    --bg: #f4f6ef;
-    --card: #ffffff;
-    --text: #16241b;
-    --muted: #5c6b61;
+    --bg: #08130f;
+    --card: #13231d;
+    --text: #e6f2ec;
+    --muted: #9ab1a5;
     --shadow: 0 14px 36px rgba(30, 54, 35, 0.09);
-    --line: #dce7d7;
-    --ink-soft: #304238;
+    --line: #2b4439;
+    --ink-soft: #c0d1c7;
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -57,7 +57,7 @@ html, body {
     border-radius: 8px;
     padding: 6px 8px;
     font-size: 14px;
-    background: #fff;
+    background: #10241b;
     color: var(--text);
 }
 
@@ -76,7 +76,7 @@ html, body {
 .welcome-panel .eyebrow { color: #c4e894; }
 .season-mark { font-size: 72px; color: #d9ef9a; transform: rotate(18deg); opacity: .9; }
 .quick-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 18px; }
-.stat { display: flex; align-items: baseline; gap: 10px; padding: 13px 16px; background: #fff; border: 1px solid var(--line); border-radius: 12px; }
+.stat { display: flex; align-items: baseline; gap: 10px; padding: 13px 16px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
 .stat strong { color: var(--green); font-size: 20px; }
 .stat span { color: var(--ink-soft); font-size: 14px; font-weight: 600; }
 .card {
@@ -197,6 +197,10 @@ html, body {
 .block.warn { background: #fff6f5; border-radius: 12px; padding: 12px; border: 1px solid #f6d8d5; }
 .block.warn h3 { color: var(--red); }
 .block.escalate { background: #fff3e0; border-radius: 12px; padding: 12px; border: 1px solid #f3d9a8; }
+
+input, select, textarea { background: #10241b; color: var(--text); border-color: var(--line); }
+.block.warn { background: #3a211b; border-color: #704238; }
+.block.escalate { background: #3a2b18; border-color: #765a2d; }
 .text { margin: 0; }
 
 .steps { margin: 0; padding-left: 18px; }

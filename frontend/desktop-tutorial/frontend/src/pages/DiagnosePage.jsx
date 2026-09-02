@@ -180,8 +180,27 @@ export default function DiagnosePage() {
   const displayWarnings = language === 'en' ? result?.safetyWarnings : result?.translatedAdvisory?.safetyWarnings || result?.safetyWarnings;
   const displayEscalation = language === 'en' ? result?.escalationInfo : result?.translatedAdvisory?.escalationInfo || result?.escalationInfo;
 
+  const actionGroups = (() => {
+    const groups = { organic: [], chemical: [], prevention: [] };
+    let currentGroup = 'organic';
+    (displayActions || []).forEach((action) => {
+      const text = String(action);
+      if (/step\s*2|chemical/i.test(text)) {
+        currentGroup = 'chemical';
+      } else if (/step\s*3|prevent/i.test(text)) {
+        currentGroup = 'prevention';
+      } else if (/step\s*1|organic|immediate/i.test(text)) {
+        currentGroup = 'organic';
+      } else {
+        groups[currentGroup].push(action);
+      }
+    });
+    return groups;
+  })();
+
   const handleFileSelect = (file) => {
-    if (!file?.type.startsWith('image/')) {
+    const isImage = file?.type?.startsWith('image/') || /\.(jpe?g|png|webp|gif|bmp|heic|heif)$/i.test(file?.name || '');
+    if (!isImage) {
       setError(getLocalizedError(labelText.chooseImage));
       return;
     }
@@ -193,7 +212,16 @@ export default function DiagnosePage() {
     setError(null);
     setSelectedFile(file);
     if (imagePreview) URL.revokeObjectURL(imagePreview);
-    setImagePreview(URL.createObjectURL(file));
+    const previewUrl = URL.createObjectURL(file);
+    const previewImage = new Image();
+    previewImage.onload = () => setImagePreview(previewUrl);
+    previewImage.onerror = () => {
+      URL.revokeObjectURL(previewUrl);
+      setSelectedFile(null);
+      setImagePreview(null);
+      setError(getLocalizedError(labelText.chooseImage));
+    };
+    previewImage.src = previewUrl;
   };
 
   useEffect(() => {
@@ -576,19 +604,19 @@ export default function DiagnosePage() {
                   stepNumber={1}
                   icon="🌿"
                   title={language === 'bn' ? 'ধাপ ১: জৈব' : language === 'hi' ? 'चरण 1: जैविक' : 'Step 1: Organic'}
-                  actions={displayActions?.filter((a) => /step 1|জৈব|जैविक/i.test(String(a))) ?? (displayActions && displayActions.length > 0 ? [displayActions[0]] : [])}
+                  actions={actionGroups.organic}
                 />
                 <ActionCard
                   stepNumber={2}
                   icon="💊"
                   title={language === 'bn' ? 'ধাপ ২: রাসায়নিক' : language === 'hi' ? 'चरण 2: रासायनिक' : 'Step 2: Chemical'}
-                  actions={displayActions?.filter((a) => /step 2|dosage|রাসায়নিক|रासायनिक/i.test(String(a))) ?? (displayActions && displayActions.length > 1 ? displayActions.slice(1, 3) : [])}
+                  actions={actionGroups.chemical}
                 />
                 <ActionCard
                   stepNumber={3}
                   icon="🛡️"
                   title={language === 'bn' ? 'ধাপ ৩: প্রতিরোধ' : language === 'hi' ? 'चरण 3: रोकथाम' : 'Step 3: Prevention'}
-                  actions={displayActions?.filter((a) => /step 3|prevent|প্রতিরোধ|रोकथाम/i.test(String(a))) ?? (displayActions && displayActions.length > 2 ? displayActions.slice(2) : [])}
+                  actions={actionGroups.prevention}
                 />
               </div>
             </div>

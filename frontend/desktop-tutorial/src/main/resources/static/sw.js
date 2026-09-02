@@ -1,4 +1,4 @@
-/* Retires the legacy static interface and its offline request queue. */
+/* Cleans up the retired offline worker that queued Analyze requests. */
 self.addEventListener('install', () => self.skipWaiting());
 
 self.addEventListener('activate', event => {
@@ -8,7 +8,5 @@ self.addEventListener('activate', event => {
         .filter(key => key.startsWith('fasalsathi-'))
         .map(key => caches.delete(key))))
       .then(() => self.registration.unregister())
-      .then(() => self.clients.matchAll({ type: 'window' }))
-      .then(clients => Promise.all(clients.map(client => client.navigate(client.url))))
   );
 });

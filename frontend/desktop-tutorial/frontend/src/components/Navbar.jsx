@@ -6,11 +6,13 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const { language, setLanguage, languages } = useLanguage();
+  const labels = { en: ['Home', 'Diagnose', 'About', 'Profile'], bn: ['হোম', 'রোগ নির্ণয়', 'সম্পর্কে', 'প্রোফাইল'], hi: ['होम', 'जाँच', 'जानकारी', 'प्रोफ़ाइल'] }[language] || ['Home', 'Diagnose', 'About', 'Profile'];
 
   const navLinks = [
-    { path: '/', label: 'Home', icon: '🏠' },
-    { path: '/diagnose', label: 'Diagnose', icon: '🔍' },
-    { path: '/about', label: 'About', icon: 'ℹ️' },
+    { path: '/', label: labels[0], icon: '🏠' },
+    { path: '/diagnose', label: labels[1], icon: '🔍' },
+    { path: '/about', label: labels[2], icon: 'ℹ️' },
+    { path: '/profile', label: labels[3], icon: '👤' },
   ];
 
   return (

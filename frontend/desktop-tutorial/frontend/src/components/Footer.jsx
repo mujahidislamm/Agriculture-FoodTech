@@ -1,9 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   const version = '1.0.0';
+  const text = { en: { desc: 'AI-powered crop disease advisor for West Bengal farmers', nav: 'Navigation', dashboard: 'Dashboard', diagnosis: 'Crop Diagnosis', about: 'About', profile: 'Farmer Profile', resources: 'Resources', support: 'Support', setup: 'Setup Guide', faq: 'FAQ', help: 'Help Center', contact: 'Contact Us', tech: 'Using React, Spring Boot, TorchScript ML Models' }, bn: { desc: 'পশ্চিমবঙ্গের কৃষকদের জন্য এআই ফসল রোগ পরামর্শ', nav: 'নেভিগেশন', dashboard: 'ড্যাশবোর্ড', diagnosis: 'ফসল রোগ নির্ণয়', about: 'সম্পর্কে', profile: 'কৃষক প্রোফাইল', resources: 'সহায়ক তথ্য', support: 'সহায়তা', setup: 'সেটআপ নির্দেশিকা', faq: 'প্রশ্নোত্তর', help: 'সহায়তা কেন্দ্র', contact: 'যোগাযোগ', tech: 'React, Spring Boot ও TorchScript ML Model ব্যবহার করছে' }, hi: { desc: 'पश्चिम बंगाल के किसानों के लिए AI फसल रोग सलाहकार', nav: 'नेविगेशन', dashboard: 'डैशबोर्ड', diagnosis: 'फसल जाँच', about: 'जानकारी', profile: 'किसान प्रोफ़ाइल', resources: 'संसाधन', support: 'सहायता', setup: 'सेटअप गाइड', faq: 'सामान्य प्रश्न', help: 'सहायता केंद्र', contact: 'संपर्क करें', tech: 'React, Spring Boot और TorchScript ML Models का उपयोग' } }[useLanguage().language];
 
   return (
     <footer className="bg-gradient-to-r from-slate-900 to-slate-800 text-white py-12 mt-16">
@@ -15,25 +17,26 @@ export default function Footer() {
               <span>🌾</span>
               <span>FasalSathi</span>
             </div>
-            <p className="text-sm text-slate-400">AI-powered crop disease advisor for West Bengal farmers</p>
+            <p className="text-sm text-slate-400">{text.desc}</p>
             <p className="text-xs text-slate-500">v{version}</p>
           </div>
 
           {/* Navigation */}
           <div>
-            <h4 className="font-semibold text-sm mb-3 text-slate-200">Navigation</h4>
+            <h4 className="font-semibold text-sm mb-3 text-slate-200">{text.nav}</h4>
             <ul className="space-y-2">
-              <li><Link to="/" className="text-sm text-slate-400 hover:text-white transition-colors">Dashboard</Link></li>
-              <li><Link to="/diagnose" className="text-sm text-slate-400 hover:text-white transition-colors">Crop Diagnosis</Link></li>
-              <li><Link to="/about" className="text-sm text-slate-400 hover:text-white transition-colors">About</Link></li>
+              <li><Link to="/" className="text-sm text-slate-400 hover:text-white transition-colors">{text.dashboard}</Link></li>
+              <li><Link to="/diagnose" className="text-sm text-slate-400 hover:text-white transition-colors">{text.diagnosis}</Link></li>
+              <li><Link to="/about" className="text-sm text-slate-400 hover:text-white transition-colors">{text.about}</Link></li>
+              <li><Link to="/profile" className="text-sm text-slate-400 hover:text-white transition-colors">{text.profile}</Link></li>
             </ul>
           </div>
 
           {/* Resources */}
           <div>
-            <h4 className="font-semibold text-sm mb-3 text-slate-200">Resources</h4>
+            <h4 className="font-semibold text-sm mb-3 text-slate-200">{text.resources}</h4>
             <ul className="space-y-2">
-              <li><a href="/SETUP_GUIDE.md" className="text-sm text-slate-400 hover:text-white transition-colors">Setup Guide</a></li>
+              <li><a href="/SETUP_GUIDE.md" className="text-sm text-slate-400 hover:text-white transition-colors">{text.setup}</a></li>
               <li><a href="https://github.com/mujahidislamm/Agriculture-FoodTech" className="text-sm text-slate-400 hover:text-white transition-colors">GitHub Repository</a></li>
               <li><a href="#" className="text-sm text-slate-400 hover:text-white transition-colors">API Docs</a></li>
             </ul>
@@ -41,11 +44,11 @@ export default function Footer() {
 
           {/* Support */}
           <div>
-            <h4 className="font-semibold text-sm mb-3 text-slate-200">Support</h4>
+            <h4 className="font-semibold text-sm mb-3 text-slate-200">{text.support}</h4>
             <ul className="space-y-2">
-              <li><a href="#" className="text-sm text-slate-400 hover:text-white transition-colors">FAQ</a></li>
-              <li><a href="#" className="text-sm text-slate-400 hover:text-white transition-colors">Help Center</a></li>
-              <li><a href="#" className="text-sm text-slate-400 hover:text-white transition-colors">Contact Us</a></li>
+              <li><a href="#" className="text-sm text-slate-400 hover:text-white transition-colors">{text.faq}</a></li>
+              <li><a href="#" className="text-sm text-slate-400 hover:text-white transition-colors">{text.help}</a></li>
+              <li><a href="#" className="text-sm text-slate-400 hover:text-white transition-colors">{text.contact}</a></li>
             </ul>
           </div>
         </div>
@@ -55,7 +58,7 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="text-sm text-slate-400 text-center md:text-left">
               <p>© {currentYear} FasalSathi. Built with ❤️ for West Bengal Farmers.</p>
-              <p className="text-xs text-slate-500 mt-1">Using React, Spring Boot, TorchScript ML Models</p>
+              <p className="text-xs text-slate-500 mt-1">{text.tech}</p>
             </div>
             <div className="flex gap-4">
               <a href="#" className="text-slate-400 hover:text-white transition-colors" aria-label="Twitter">

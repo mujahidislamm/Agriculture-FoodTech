@@ -115,9 +115,18 @@
     /* ── Photo capture + low-bandwidth compression ─────────────────── */
     function handleFile(file) {
         if (!file) return;
+        if (!file.type || !file.type.startsWith('image/')) {
+            setStatus(t('chooseImage', state.lang));
+            return;
+        }
+        // Keep the original file immediately; compression is best-effort.
+        state.imageBlob = file;
+        state.imageName = file.name || 'leaf.jpg';
         const reader = new FileReader();
+        reader.onerror = () => setStatus(t('chooseImage', state.lang));
         reader.onload = (e) => {
             const img = new Image();
+            img.onerror = () => setStatus(t('chooseImage', state.lang));
             img.onload = () => {
                 const max = 800;
                 let { width, height } = img;
@@ -127,11 +136,10 @@
                 canvas.width = width; canvas.height = height;
                 canvas.getContext('2d').drawImage(img, 0, 0, width, height);
                 canvas.toBlob((blob) => {
-                    state.imageBlob = blob;
-                    state.imageName = file.name || 'leaf.jpg';
+                    if (blob) state.imageBlob = blob;
                     $('previewImg').src = e.target.result;
                     $('photoPreview').hidden = false;
-                    const kb = Math.round(blob.size / 1024);
+                    const kb = Math.round((blob || file).size / 1024);
                     $('compressNote').textContent = t('imageTooLarge', state.lang) + ' (' + kb + ' KB)';
                 }, 'image/jpeg', 0.6);
             };
@@ -367,8 +375,8 @@
         $('crop').addEventListener('change', fillStages);
         $('captureBtn').addEventListener('click', () => $('fileInput').click());
         $('galleryBtn').addEventListener('click', () => $('galleryInput').click());
-        $('fileInput').addEventListener('change', (e) => handleFile(e.target.files[0]));
-        $('galleryInput').addEventListener('change', (e) => handleFile(e.target.files[0]));
+        $('fileInput').addEventListener('change', (e) => { handleFile(e.target.files[0]); e.target.value = ''; });
+        $('galleryInput').addEventListener('change', (e) => { handleFile(e.target.files[0]); e.target.value = ''; });
         $('micBtn').addEventListener('click', startDictation);
         $('analyzeBtn').addEventListener('click', analyze);
         $('speakBtn').addEventListener('click', speak);

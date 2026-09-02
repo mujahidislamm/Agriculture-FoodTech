@@ -1,13 +1,13 @@
 :root {
     --green: #1a6b3c;
     --green-dark: #0a1a0f;
-    --green-light: #e7f5ec;
+    --green-light: #173d2b;
     --amber: #b9770a;
     --red: #b3261e;
     --bg: #f3f7f4;
-    --card: #ffffff;
-    --text: #16241b;
-    --muted: #5c6b61;
+    --card: #13231d;
+    --text: #e6f2ec;
+    --muted: #9ab1a5;
     --shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
 }
 
@@ -16,8 +16,8 @@
 html, body {
     margin: 0;
     padding: 0;
-    background: var(--bg);
-    color: var(--text);
+    background: #08130f;
+    color: #e6f2ec;
     font-family: "Noto Sans Bengali", "Noto Sans Devanagari", "Noto Sans", Roboto, system-ui, sans-serif;
     font-size: 17px;
     line-height: 1.5;
@@ -126,6 +126,10 @@ html, body {
     cursor: pointer;
 }
 .btn.primary { background: var(--green); color: #fff; }
+
+input, select, textarea { background: #10241b; color: var(--text); border-color: var(--line); }
+.block.warn { background: #3a211b; border-color: #704238; }
+.block.escalate { background: #3a2b18; border-color: #765a2d; }
 .btn.secondary { background: var(--green-light); color: var(--green); flex: 1; }
 .btn.ghost { background: transparent; color: var(--muted); }
 .btn.small { padding: 8px 12px; font-size: 14px; }

@@ -113,6 +113,7 @@ echo.
 echo.
 
 REM Navigate to frontend and build
+set "BACKEND_DIR=%~dp0Agriculture-FoodTech"
 set "FRONTEND_DIR=%~dp0frontend\desktop-tutorial\frontend"
 if not exist "%FRONTEND_DIR%\package.json" (
   echo ERROR: Frontend project not found at %FRONTEND_DIR%
@@ -140,18 +141,50 @@ if errorlevel 1 (
   exit /b 1
 )
 popd
+xcopy /E /I /Y "%FRONTEND_DIR%\dist\*" "%BACKEND_DIR%\src\main\resources\static\" >nul
+if errorlevel 1 (
+  echo ERROR: Could not copy the frontend build into the backend static directory
+  pause
+  exit /b 1
+)
 echo ✓ Frontend built successfully
 
 REM Start backend
 echo.
 echo Starting Spring Boot backend...
-pushd "%~dp0frontend\desktop-tutorial"
+set "HEALTH_URL=http://localhost:8080/api/v1/health"
+set "SERVER_READY=0"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "try { $response = Invoke-WebRequest -Uri 'http://localhost:8080/' -UseBasicParsing -TimeoutSec 2; if ($response.StatusCode -eq 200 -and $response.Content -match 'id=\"root\"') { exit 0 } } catch {} ; exit 1" >nul 2>&1
+if not errorlevel 1 (
+  set "SERVER_READY=1"
+  echo Existing React FasalSathi server is already ready.
+  goto server_ready
+)
+REM Stop an older static FasalSathi instance using the same port.
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$connection = Get-NetTCPConnection -LocalPort 8080 -State Listen -ErrorAction SilentlyContinue; if ($connection) { Stop-Process -Id $connection.OwningProcess -Force -ErrorAction SilentlyContinue }" >nul 2>&1
+pushd "%BACKEND_DIR%"
 start "FasalSathi Backend" cmd /k "title FasalSathi Backend Server && mvn spring-boot:run"
 popd
 
 REM Wait for backend to start
 echo Waiting for server to start...
-timeout /t 6 /nobreak
+for /l %%N in (1,1,60) do (
+  powershell -NoProfile -ExecutionPolicy Bypass -Command "try { $response = Invoke-WebRequest -Uri '%HEALTH_URL%' -UseBasicParsing -TimeoutSec 2; if ($response.StatusCode -eq 200) { exit 0 } } catch {} ; exit 1" >nul 2>&1
+  if not errorlevel 1 (
+    set "SERVER_READY=1"
+    goto server_ready
+  )
+  timeout /t 2 /nobreak >nul
+)
+
+:server_ready
+if "%SERVER_READY%"=="0" (
+  echo.
+  echo ERROR: FasalSathi did not become ready within 120 seconds.
+  echo Check the FasalSathi Backend window for the startup error.
+  pause
+  exit /b 1
+)
 
 REM Open browser
 echo.

@@ -166,6 +166,13 @@ public class CropPredictionController {
         return h;
     }
 
+    @GetMapping("/weather")
+    public Map<String, Object> getWeather(
+            @RequestParam(value = "lat", required = false) Double latitude,
+            @RequestParam(value = "lon", required = false) Double longitude) {
+        return weatherService.getDistrictWeather(latitude, longitude);
+    }
+
     // ── Market Info (Harvest Time + Mandi Prices) ─────────────────────────
 
     /**
