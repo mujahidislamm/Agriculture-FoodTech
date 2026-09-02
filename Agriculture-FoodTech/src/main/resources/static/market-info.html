@@ -733,7 +733,7 @@
             return;
         }
 
-        const isLive = prices[0].live; // 'isLive' maps to 'live' in JSON
+        const isLive = Boolean(prices[0].isLive ?? prices[0].live);
         priceSource.innerHTML = isLive
             ? '<span class="live-dot"></span> Live from data.gov.in'
             : '<span class="fallback-badge">⚡ Representative WB prices</span>';

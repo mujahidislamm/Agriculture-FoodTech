@@ -56,14 +56,14 @@ public class CropPredictionController {
      */
     @PostMapping(value = "/diagnose", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public PredictionResponseDTO diagnose(
-            @RequestPart("image") MultipartFile image,
-            @RequestPart(value = "cropType", required = false) String cropType,
-            @RequestPart(value = "cropStage", required = false) String cropStage,
-            @RequestPart(value = "district", required = false) String district,
-            @RequestPart(value = "latitude", required = false) String latitude,
-            @RequestPart(value = "longitude", required = false) String longitude,
-            @RequestPart(value = "observations", required = false) String observations,
-            @RequestPart(value = "language", required = false) String language) {
+            @RequestParam("image") MultipartFile image,
+            @RequestParam(value = "cropType", required = false) String cropType,
+            @RequestParam(value = "cropStage", required = false) String cropStage,
+            @RequestParam(value = "district", required = false) String district,
+            @RequestParam(value = "latitude", required = false) String latitude,
+            @RequestParam(value = "longitude", required = false) String longitude,
+            @RequestParam(value = "observations", required = false) String observations,
+            @RequestParam(value = "language", required = false) String language) {
 
         // 1. Run model inference
         Map<String, Double> predictions = modelInferenceService.predict(image);
@@ -143,6 +143,12 @@ public class CropPredictionController {
     @GetMapping("/translations")
     public Map<String, Map<String, String>> getTranslations() {
         return translationService.getAllPhrases();
+    }
+
+    @GetMapping("/market-info/{cropName}")
+    public CropMarketInfoDTO getMarketInfoForCrop(@PathVariable("cropName") String cropName) {
+        HarvestInfoDTO harvest = harvestTimeService.getHarvestInfo(cropName);
+        return null;
     }
 
     @GetMapping("/weather")

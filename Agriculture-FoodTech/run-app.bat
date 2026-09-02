@@ -3,8 +3,13 @@ setlocal enabledelayedexpansion
 cd /d "%~dp0"
 
 set "APP_URL=http://localhost:8080"
-set "BACKEND_DIR=%~dp0..\frontend\desktop-tutorial"
-set "FRONTEND_DIR=%BACKEND_DIR%\frontend"
+set "BACKEND_DIR=%~dp0"
+if not exist "%BACKEND_DIR%\pom.xml" (
+  if exist "%~dp0..\frontend\desktop-tutorial\pom.xml" (
+    set "BACKEND_DIR=%~dp0..\frontend\desktop-tutorial"
+  )
+)
+set "FRONTEND_DIR=%~dp0..\frontend\desktop-tutorial\frontend"
 
 REM This is the only website that should open for the app.
 REM Do not open any alternate index files or separate frontend pages.
@@ -24,6 +29,8 @@ echo.
 set "JAVA_HOME="
 for %%D in (
   "C:\Program Files\Java\jdk-26.0.2.1"
+  "C:\Program Files\Java\jdk-26.0.2"
+  "C:\Program Files\Java\jdk-21.0.2"
   "C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot"
   "C:\Program Files\Java\latest"
 ) do (
@@ -37,9 +44,11 @@ if not "%JAVA_HOME%"=="" set "PATH=%JAVA_HOME%\bin;%PATH%"
 
 set "MAVEN_HOME="
 for %%D in (
-  "C:\Users\admin\maven\apache-maven-3.9.9"
+  "C:\apache-maven-3.9.9"
   "C:\Program Files\Apache\Maven"
   "C:\Program Files\Apache\apache-maven-3.9.9"
+  "C:\Program Files\Maven"
+  "C:\Users\admin\maven\apache-maven-3.9.9"
 ) do (
   if exist "%%~D\bin\mvn.cmd" (
     set "MAVEN_HOME=%%~D"
