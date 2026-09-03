@@ -49,8 +49,23 @@ public class AdvisoryService {
 
         String lang = (language != null && !language.isBlank()) ? language : "en";
 
+        List<Map.Entry<String, Double>> cropPredictions = predictions.entrySet().stream()
+            .filter(entry -> matchesCrop(entry.getKey(), cropType))
+            .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+            .toList();
+        Map.Entry<String, Double> overallTop = predictions.entrySet().stream()
+            .max(Map.Entry.comparingByValue())
+            .orElseThrow();
+        if (cropType == null || cropType.isBlank()
+                || cropPredictions.isEmpty()) {
+            return imageNotMatchedResponse(lang, cropType, overallTop.getValue());
+        }
+
+        // The farmer's crop selection is useful evidence. Prefer its best matching
+        // class when the general model is uncertain instead of forcing an unrelated
+        // crop label onto a valid leaf image.
         // ── Top-K candidates ────────────────────────────────────────
-        List<Map.Entry<String, Double>> sorted = predictions.entrySet().stream()
+        List<Map.Entry<String, Double>> sorted = cropPredictions.stream()
                 .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
                 .limit(TOP_K)
                 .toList();
@@ -130,6 +145,37 @@ public class AdvisoryService {
                 translated,
                 districtContext);
     }
+
+            private boolean matchesCrop(String label, String cropType) {
+            if (label == null || cropType == null || cropType.isBlank()) return false;
+            String normalizedLabel = label.toLowerCase(Locale.ROOT).replace('_', ' ');
+            String normalizedCrop = cropType.toLowerCase(Locale.ROOT).trim();
+            if (normalizedCrop.equals("brinjal")) normalizedCrop = "eggplant";
+            return normalizedLabel.contains(normalizedCrop)
+                || (normalizedCrop.equals("chilli") && normalizedLabel.contains("pepper"));
+            }
+
+            private PredictionResponseDTO imageNotMatchedResponse(String language, String cropType, double confidence) {
+            String crop = cropType == null || cropType.isBlank() ? "selected crop" : cropType;
+            String explanation = "This image could not be matched confidently to " + crop
+                + ". No disease treatment has been suggested. Take a close, well-lit photo of one leaf from the selected crop, then try again.";
+            String escalation = "Please retake the image with the leaf filling most of the frame. If the result remains uncertain, consult a KVK or agriculture expert before treating the crop.";
+            return new PredictionResponseDTO(
+                "IMAGE_NOT_MATCHED",
+                "Image not matched",
+                confidence,
+                List.of(),
+                explanation,
+                "",
+                List.of("Retake a clear photo of one leaf from the selected crop.", "Use natural light and keep the affected area in focus.", "Do not apply chemical treatment based on this result."),
+                List.of(),
+                null,
+                null,
+                true,
+                escalation,
+                new TranslatedAdvisoryDTO(language, "Image not matched", explanation, "", List.of(), List.of(), escalation),
+                null);
+            }
 
     // ── Private helpers ─────────────────────────────────────────────────
 

@@ -3,7 +3,7 @@ import { useLanguage } from '../context/LanguageContext';
 
 export default function FileUpload({ onFileSelect, preview, onClear }) {
   const { language } = useLanguage();
-  const copy = { en: { preview: 'Crop preview', upload: 'Take a photo or upload', hint: 'Tap to use camera on mobile or drag and drop', label: 'Upload crop leaf image', remove: 'Remove image' }, bn: { preview: 'ফসলের ছবি', upload: 'ছবি তুলুন বা আপলোড করুন', hint: 'মোবাইলে ক্যামেরা ব্যবহার করুন বা ছবি টেনে আনুন', label: 'ফসলের পাতার ছবি আপলোড করুন', remove: 'ছবি মুছে ফেলুন' }, hi: { preview: 'फसल की तस्वीर', upload: 'फोटो लें या अपलोड करें', hint: 'मोबाइल पर कैमरा इस्तेमाल करें या फोटो यहाँ खींचें', label: 'फसल के पत्ते की तस्वीर अपलोड करें', remove: 'तस्वीर हटाएँ' } }[language] || {};
+  const copy = { en: { preview: 'Crop preview', upload: 'Take a photo or upload', hint: 'Use one clear leaf in natural light. JPG or PNG works best.', label: 'Upload crop leaf image', remove: 'Remove image', replace: 'Choose a different image' }, bn: { preview: 'ফসলের ছবি', upload: 'ছবি তুলুন বা আপলোড করুন', hint: 'প্রাকৃতিক আলোতে একটি পরিষ্কার পাতার ছবি তুলুন। JPG বা PNG ব্যবহার করুন।', label: 'ফসলের পাতার ছবি আপলোড করুন', remove: 'ছবি মুছে ফেলুন', replace: 'অন্য ছবি বেছে নিন' }, hi: { preview: 'फसल की तस्वीर', upload: 'फोटो लें या अपलोड करें', hint: 'प्राकृतिक रोशनी में एक साफ़ पत्ते की तस्वीर लें। JPG या PNG इस्तेमाल करें।', label: 'फसल के पत्ते की तस्वीर अपलोड करें', remove: 'तस्वीर हटाएँ', replace: 'दूसरी तस्वीर चुनें' } }[language] || {};
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -34,14 +34,12 @@ export default function FileUpload({ onFileSelect, preview, onClear }) {
   };
 
   const handleClick = () => {
-    if (!preview) {
-      fileInputRef.current.value = '';
-      fileInputRef.current?.click();
-    }
+    fileInputRef.current.value = '';
+    fileInputRef.current?.click();
   };
 
   const handleKeyDown = (event) => {
-    if ((event.key === 'Enter' || event.key === ' ') && !preview) {
+    if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       fileInputRef.current.value = '';
       fileInputRef.current?.click();
@@ -52,7 +50,7 @@ export default function FileUpload({ onFileSelect, preview, onClear }) {
     <div className="w-full">
       <input
         type="file"
-        accept="image/*"
+        accept="image/jpeg,image/png,image/webp"
         className="hidden"
         ref={fileInputRef}
         onChange={handleChange}
@@ -62,6 +60,7 @@ export default function FileUpload({ onFileSelect, preview, onClear }) {
         <div className="relative rounded-lg overflow-hidden border-2 border-emerald-500 shadow-sm">
           <img src={preview} alt={copy.preview} className="w-full h-auto object-cover max-h-96" />
           <button
+            type="button"
             onClick={() => {
               fileInputRef.current.value = '';
               onClear();
@@ -72,6 +71,9 @@ export default function FileUpload({ onFileSelect, preview, onClear }) {
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
             </svg>
+          </button>
+          <button type="button" onClick={handleClick} className="absolute bottom-2 left-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-semibold text-white shadow-md hover:bg-emerald-800">
+            {copy.replace}
           </button>
         </div>
       ) : (

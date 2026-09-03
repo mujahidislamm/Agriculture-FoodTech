@@ -39,7 +39,6 @@ export default function HomePage() {
   const [crop, setCrop] = useState('Rice');
   const [weather, setWeather] = useState(null);
   const [market, setMarket] = useState(null);
-  const [profitInputs, setProfitInputs] = useState({ land: '2', crop: 'Tomato', seed: '4000', fertilizer: '7000', labour: '12000', production: '80', price: '2400' });
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState('');
   const [currentTime, setCurrentTime] = useState(() => new Date());
@@ -106,10 +105,6 @@ export default function HomePage() {
     }, () => { setNotice(text.locationFail); setLoading(false); }, { timeout: 10000, maximumAge: 300000 });
   };
 
-  const updateProfitInput = (field, value) => {
-    setProfitInputs((current) => ({ ...current, [field]: value }));
-  };
-
   return <div className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-slate-100 text-slate-800">
     <MorningBrief district={district} crop={crop} weather={weather} market={market} currentTime={currentTime} language={language} />
     {/* Hero Section */}
@@ -135,7 +130,7 @@ export default function HomePage() {
               {text.diagnose}
             </button>
             <a 
-              href="#farm-tools" 
+              href="/tools"
               className="rounded-xl border-2 border-white/40 bg-white/10 px-6 py-3 font-semibold text-white backdrop-blur-sm hover:bg-white/20 transition-all duration-200"
             >
               {text.explore}
@@ -165,8 +160,6 @@ export default function HomePage() {
           {text.select}
         </p>
       </div>
-      <a href="#profit-calculator-title" className="mt-4 inline-flex items-center rounded-lg border border-emerald-700 bg-emerald-950/50 px-4 py-2 text-sm font-bold text-emerald-300 transition hover:bg-emerald-900/70">🧮 Explore more tools: Farm Profit Calculator</a>
-      
       {/* Dashboard Card */}
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-md hover:shadow-lg transition-shadow">
         {/* District Selection */}
@@ -237,13 +230,6 @@ export default function HomePage() {
       </div>
     </section>
 
-    <ProfitCalculator
-      inputs={profitInputs}
-      onChange={updateProfitInput}
-      market={market}
-      language={language}
-    />
-
     {/* CTA Section */}
     <section className="border-t-2 border-b-2 border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 px-4 py-12">
       <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-6 sm:flex-row">
@@ -274,7 +260,7 @@ function MorningBrief({ district, crop, weather, market, currentTime, language }
   return <section className="mx-auto max-w-7xl px-4 pt-6 sm:pt-8" aria-labelledby="morning-brief-title"><div className="rounded-2xl border border-emerald-900/60 bg-emerald-950/40 p-5 shadow-md sm:p-6"><p className="text-xs font-bold uppercase tracking-widest text-emerald-400">{copy.today}</p><h2 id="morning-brief-title" className="mt-2 text-2xl font-bold text-slate-100">{greeting}, farmer</h2><p className="mt-2 text-sm text-slate-300">{district ? `📍 ${copy.choose.split(' ')[0]} — ${district}` : `📍 ${copy.choose}`}</p><div className="mt-4 grid gap-3 text-sm text-slate-200 md:grid-cols-3"><p>🌦️ <strong>{copy.weather}:</strong> {weatherAdvice}</p><p>💰 <strong>{crop} {copy.price}:</strong> ₹{price.toLocaleString('en-IN')}/quintal {copy.nearby}.</p><p>🐛 <strong>{copy.pest}:</strong> {copy.pestText}</p></div></div></section>;
 }
 
-function FarmerPlanner({ district, crop, weather, market, farmCrops, onSave, onRemove }) {
+export function FarmerPlanner({ district, crop, weather, market, farmCrops, onSave, onRemove }) {
   const [form, setForm] = useState({ crop: crop || 'Tomato', acres: '2', planted: '', harvest: '', storage: 'Ventilated room', notes: '' });
   const price = Number(market?.records?.[0]?.modalPrice) || typicalPrices[crop] || 2400;
   const weatherAdvice = weather?.rainMm > 5 ? "Rain is expected. Avoid irrigation and keep harvested produce covered." : weather ? "Check soil moisture before irrigating; avoid watering if the soil is still damp." : "Choose your district above to get a weather-based task reminder.";
@@ -350,7 +336,7 @@ function PlannerSelect({ label, value, options, onChange }) {
   return <label htmlFor={id} className="block text-sm font-semibold text-slate-200">{label}<select id={id} value={value} onChange={(event) => onChange(event.target.value)} className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-3 text-slate-100 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30">{options.map((option) => <option key={option}>{option}</option>)}</select></label>;
 }
 
-function ProfitCalculator({ inputs, onChange, market, language }) {
+export function ProfitCalculator({ inputs, onChange, market, language }) {
   const copy = featureText[language] || featureText.en;
   const numberValue = (value) => Math.max(0, Number(value) || 0);
   const marketPrice = numberValue(market?.records?.[0]?.modalPrice);
@@ -388,7 +374,7 @@ function ProfitCalculator({ inputs, onChange, market, language }) {
           <ProfitInput label={copy.selling} value={inputs.price} onChange={(value) => onChange('price', value)} />
         </div>
 
-        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-8 grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
           <ProfitResult label={copy.revenue} value={money(revenue)} tone="text-sky-300" />
           <ProfitResult label={copy.cost} value={money(totalCost)} tone="text-amber-300" />
           <ProfitResult label={profit >= 0 ? copy.profit : copy.loss} value={money(Math.abs(profit))} tone={profit >= 0 ? 'text-emerald-300' : 'text-red-300'} />
@@ -405,7 +391,7 @@ function ProfitInput({ label, value, onChange }) {
 }
 
 function ProfitResult({ label, value, tone }) {
-  return <div className="rounded-xl border border-slate-700 bg-slate-900/80 p-4"><p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{label}</p><p className={`mt-2 text-2xl font-bold ${tone}`}>{value}</p></div>;
+  return <div className="min-w-0 rounded-xl border border-slate-700 bg-slate-900/80 p-4"><p className="break-words text-xs font-semibold uppercase tracking-wide text-slate-400">{label}</p><p className={`mt-2 break-words text-xl font-bold sm:text-2xl ${tone}`}>{value}</p></div>;
 }
 
 function HeroStat({ icon, title, detail }) { return <div className="rounded-xl bg-white/10 p-3 text-center"><div className="text-2xl">{icon}</div><strong className="mt-2 block text-sm">{title}</strong><span className="text-xs text-emerald-100">{detail}</span></div>; }
@@ -418,6 +404,7 @@ function Weather({ weather, district, loading, text }) {
 
 function Market({ crop, setCrop, market, week, district, loading, text }) {
   const max = Math.max(...week.map((item) => item.price), 1);
+  if (!district) return <div className="py-10 text-center text-sm text-slate-500">{text.chooseDistrict}</div>;
   return <div className="mt-6"><div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><h3 className="text-xl font-bold text-slate-900">{text.marketTitle(district)}</h3><p className="mt-1 text-sm text-slate-500">{text.marketCopy}</p></div><label className="text-sm font-semibold text-slate-700">{text.crop}<select value={crop} onChange={(event) => setCrop(event.target.value)} className="ml-3 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium outline-none focus:border-emerald-600">{crops.map((name) => <option key={name}>{name}</option>)}</select></label></div>{!market && loading ? <div className="py-10 text-sm text-slate-500">{text.marketLoading}</div> : <><div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5"><div className="flex items-center justify-between"><div><p className="font-bold text-slate-900">{text.trend}</p><p className="text-xs text-slate-500">{text.trendCopy(crop)}</p></div><span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">{text.estimate}</span></div><div className="mt-5 flex h-32 items-end gap-2 sm:gap-4">{week.map((item) => <div key={item.date.toISOString()} className="flex flex-1 flex-col items-center justify-end gap-2"><span className="text-[10px] font-semibold text-slate-600">₹{item.price.toLocaleString('en-IN')}</span><div className="w-full max-w-10 rounded-t-md bg-emerald-600" style={{ height: `${Math.max(18, item.price / max * 92)}px` }} /><span className="text-[10px] text-slate-500">{dateLabel(item.date).split(' ')[0]}</span></div>)}</div></div><div className="mt-5 overflow-x-auto"><table className="w-full min-w-[620px] text-left text-sm"><thead className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500"><tr><th className="px-3 py-3">{text.marketName}</th><th className="px-3 py-3">{text.variety}</th><th className="px-3 py-3">{text.range}</th><th className="px-3 py-3">{text.modal}</th><th className="px-3 py-3">{text.date}</th></tr></thead><tbody>{(market?.records || []).map((record, index) => <tr key={`${record.market}-${index}`} className="border-b border-slate-100"><td className="px-3 py-3 font-semibold text-slate-800">{record.market}</td><td className="px-3 py-3 text-slate-600">{record.variety || text.variety}</td><td className="px-3 py-3 text-slate-600">₹{number(record.minPrice).toLocaleString('en-IN')}–₹{number(record.maxPrice).toLocaleString('en-IN')}</td><td className="px-3 py-3 font-bold text-emerald-800">₹{number(record.modalPrice).toLocaleString('en-IN')}</td><td className="px-3 py-3 text-slate-600">{record.date || text.today}</td></tr>)}</tbody></table></div><p className="mt-4 text-xs text-slate-500">{text.priceNote}</p></>}</div>;
 }
 

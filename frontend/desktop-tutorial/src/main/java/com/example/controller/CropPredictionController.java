@@ -1,10 +1,15 @@
 package com.example.controller;
 
 import com.example.dto.CropMetadataDTO;
+import com.example.dto.CropMarketInfoDTO;
+import com.example.dto.HarvestInfoDTO;
+import com.example.dto.MandiPriceDTO;
 import com.example.dto.PredictionResponseDTO;
 import com.example.entity.PredictionLog;
 import com.example.repository.PredictionLogRepository;
 import com.example.service.AdvisoryService;
+import com.example.service.HarvestTimeService;
+import com.example.service.MandiPriceService;
 import com.example.service.MandiUpdates;
 import com.example.service.ModelInferenceService;
 import com.example.service.SpeechService;
@@ -17,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.time.Instant;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -31,6 +37,8 @@ public class CropPredictionController {
     private final PredictionLogRepository predictionLogRepository;
     private final SpeechService speechService;
     private final MandiUpdates mandiUpdates;
+    private final HarvestTimeService harvestTimeService;
+    private final MandiPriceService mandiPriceService;
 
     public CropPredictionController(ModelInferenceService modelInferenceService,
                                     AdvisoryService advisoryService,
@@ -39,7 +47,9 @@ public class CropPredictionController {
                                     TranslationService translationService,
                                     PredictionLogRepository predictionLogRepository,
                                     SpeechService speechService,
-                                    MandiUpdates mandiUpdates) {
+                                    MandiUpdates mandiUpdates,
+                                    HarvestTimeService harvestTimeService,
+                                    MandiPriceService mandiPriceService) {
         this.modelInferenceService = modelInferenceService;
         this.advisoryService = advisoryService;
         this.weatherService = weatherService;
@@ -48,6 +58,8 @@ public class CropPredictionController {
         this.predictionLogRepository = predictionLogRepository;
         this.speechService = speechService;
         this.mandiUpdates = mandiUpdates;
+        this.harvestTimeService = harvestTimeService;
+        this.mandiPriceService = mandiPriceService;
     }
 
     /**
@@ -148,7 +160,24 @@ public class CropPredictionController {
     @GetMapping("/market-info/{cropName}")
     public CropMarketInfoDTO getMarketInfoForCrop(@PathVariable("cropName") String cropName) {
         HarvestInfoDTO harvest = harvestTimeService.getHarvestInfo(cropName);
-        return null;
+        List<MandiPriceDTO> prices = mandiPriceService.getPrices(cropName);
+        return new CropMarketInfoDTO(harvest, prices, Instant.now().toString());
+    }
+
+    @GetMapping("/market-info")
+    public Map<String, Object> getAllMarketInfo() {
+        List<CropMarketInfoDTO> items = new ArrayList<>();
+        for (String crop : harvestTimeService.getAvailableCrops()) {
+            items.add(new CropMarketInfoDTO(
+                    harvestTimeService.getHarvestInfo(crop),
+                    mandiPriceService.getPrices(crop),
+                    Instant.now().toString()));
+        }
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("crops", items);
+        result.put("liveApiAvailable", mandiPriceService.isLiveApiAvailable());
+        result.put("timestamp", Instant.now().toString());
+        return result;
     }
 
     @GetMapping("/weather")

@@ -13,7 +13,7 @@ This repository contains the complete runnable source for the crop-disease, mark
 From the repository root on Windows, run the only launcher:
 
 ```bat
-Agriculture-FoodTech\run-app.bat
+run-app.bat
 ```
 
 The first run installs frontend dependencies from `package-lock.json`, builds the React frontend, starts Spring Boot, and opens only the main website at `http://localhost:8080`.
@@ -27,7 +27,8 @@ The application starts without API keys. To enable live weather and mandi-price 
 
 ## Notes
 
-- Crop inference models are stored in each backend's `models/` directory.
+- Crop inference models are stored in `frontend/desktop-tutorial/models/`.
+- The canonical application source is in `frontend/desktop-tutorial/`; no second backend or frontend launcher is supported.
 - The Vosk model is stored at `vosk-model-small-en-us-0.15/` and is resolved relative to the cloned repository.
 - Training data is intentionally excluded; use `train_model.py` with your own dataset if you need to retrain a model.
 - To undo the launcher/UI change, use the `before-single-launcher-ui-fix` Git tag that is published with it.

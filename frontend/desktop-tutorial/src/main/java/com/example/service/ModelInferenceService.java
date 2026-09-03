@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -71,6 +73,15 @@ public class ModelInferenceService {
         }
         if (!Files.isRegularFile(modelPath)) {
             throw new IllegalStateException("Model file not found: " + modelPath);
+        }
+
+        try (var input = image.getInputStream()) {
+            BufferedImage decoded = ImageIO.read(input);
+            if (decoded == null || decoded.getWidth() < 160 || decoded.getHeight() < 160) {
+                throw new IllegalArgumentException("The image is too small or cannot be read. Upload a clear crop leaf photo.");
+            }
+        } catch (IOException exception) {
+            throw new IllegalArgumentException("The image could not be read. Upload a JPG or PNG crop leaf photo.", exception);
         }
 
         Path tempImage = null;

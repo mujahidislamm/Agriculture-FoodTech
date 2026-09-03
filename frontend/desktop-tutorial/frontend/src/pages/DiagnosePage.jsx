@@ -63,6 +63,10 @@ export default function DiagnosePage() {
       micUnavailable: 'Microphone unavailable.',
       chooseImage: 'Please choose a valid image file.',
       imageTooLarge: 'Image size must be 10 MB or less.',
+      imageQuality: 'Use one clear leaf in natural light. Avoid people, tables, documents, and distant plants.',
+      privacy: 'Your image is used for this diagnosis and is removed from temporary processing storage after analysis.',
+      readResult: 'Read result aloud',
+      copied: 'Diagnosis summary copied.',
     },
     bn: {
       cropType: 'ফসলের ধরন',
@@ -92,6 +96,10 @@ export default function DiagnosePage() {
       micUnavailable: 'মাইক্রোফোন উপলব্ধ নয়।',
       chooseImage: 'অনুগ্রহ করে একটি বৈধ ছবি নির্বাচন করুন।',
       imageTooLarge: 'ছবির আকার 10 MB এর কম হতে হবে।',
+      imageQuality: 'প্রাকৃতিক আলোতে একটি পরিষ্কার পাতার ছবি ব্যবহার করুন। মানুষ, টেবিল, নথি ও দূরের গাছ এড়িয়ে চলুন।',
+      privacy: 'এই ছবিটি শুধু রোগ নির্ণয়ের জন্য ব্যবহার করা হয় এবং বিশ্লেষণের পর অস্থায়ী স্টোরেজ থেকে মুছে ফেলা হয়।',
+      readResult: 'ফলাফল পড়ে শোনান',
+      copied: 'রোগ নির্ণয়ের সারাংশ কপি হয়েছে।',
     },
     hi: {
       cropType: 'फसल का प्रकार',
@@ -121,6 +129,10 @@ export default function DiagnosePage() {
       micUnavailable: 'माइक्रोफोन उपलब्ध नहीं है।',
       chooseImage: 'कृपया एक सही छवि चुनें।',
       imageTooLarge: 'छवि का आकार 10 MB से कम होना चाहिए।',
+      imageQuality: 'प्राकृतिक रोशनी में एक साफ़ पत्ते की तस्वीर लें। इंसान, टेबल, दस्तावेज़ और दूर के पौधों से बचें।',
+      privacy: 'इस तस्वीर का उपयोग केवल निदान के लिए किया जाता है और विश्लेषण के बाद अस्थायी स्टोरेज से हटा दिया जाता है।',
+      readResult: 'नतीजा सुनाएं',
+      copied: 'निदान सारांश कॉपी हो गया।',
     },
   };
 
@@ -198,14 +210,73 @@ export default function DiagnosePage() {
     return groups;
   })();
 
-  const handleFileSelect = (file) => {
-    const isImage = file?.type?.startsWith('image/') || /\.(jpe?g|png|webp|gif|bmp|heic|heif)$/i.test(file?.name || '');
+  const validateImageContent = (file) => new Promise((resolve) => {
+    const image = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    image.onload = () => {
+      try {
+        if (image.naturalWidth < 160 || image.naturalHeight < 160) {
+          resolve('Image is too small. Please upload a clear crop-leaf photo at least 160 × 160 pixels.');
+          return;
+        }
+        const canvas = document.createElement('canvas');
+        const size = 96;
+        canvas.width = size;
+        canvas.height = size;
+        const context = canvas.getContext('2d', { willReadFrequently: true });
+        context.drawImage(image, 0, 0, size, size);
+        const pixels = context.getImageData(0, 0, size, size).data;
+        let brightnessTotal = 0;
+        let brightnessSquared = 0;
+        let colorfulPixels = 0;
+        for (let index = 0; index < pixels.length; index += 4) {
+          const red = pixels[index];
+          const green = pixels[index + 1];
+          const blue = pixels[index + 2];
+          const brightness = (red + green + blue) / 3;
+          brightnessTotal += brightness;
+          brightnessSquared += brightness * brightness;
+          if (Math.max(red, green, blue) - Math.min(red, green, blue) > 28) colorfulPixels += 1;
+        }
+        const count = pixels.length / 4;
+        const averageBrightness = brightnessTotal / count;
+        const variance = brightnessSquared / count - averageBrightness ** 2;
+        if (averageBrightness < 18 || averageBrightness > 242) {
+          resolve('This image is too dark or overexposed. Please retake the crop leaf photo in natural light.');
+          return;
+        }
+        if (variance < 20 && colorfulPixels / count < 0.04) {
+          resolve('This image does not contain enough visible leaf detail. Please upload a focused crop-leaf photo, not a table or document.');
+          return;
+        }
+        resolve('');
+      } catch {
+        resolve('The image could not be checked. Please upload a JPG or PNG crop-leaf photo.');
+      } finally {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve('This image format cannot be read in the browser. Please use JPG or PNG.');
+    };
+    image.src = objectUrl;
+  });
+
+  const handleFileSelect = async (file) => {
+    const isImage = /^image\/(jpeg|png|webp)$/i.test(file?.type || '') || /\.(jpe?g|png|webp)$/i.test(file?.name || '');
     if (!isImage) {
       setError(getLocalizedError(labelText.chooseImage));
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
       setError(getLocalizedError(labelText.imageTooLarge));
+      return;
+    }
+
+    const contentError = await validateImageContent(file);
+    if (contentError) {
+      setError(contentError);
       return;
     }
 
@@ -219,7 +290,7 @@ export default function DiagnosePage() {
       URL.revokeObjectURL(previewUrl);
       setSelectedFile(null);
       setImagePreview(null);
-      setError(getLocalizedError(labelText.chooseImage));
+      setError('This image cannot be read reliably. Please use a JPG or PNG crop-leaf photo.');
     };
     previewImage.src = previewUrl;
   };
@@ -317,6 +388,39 @@ export default function DiagnosePage() {
   });
 
   const startVoiceCapture = async () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.lang = language === 'bn' ? 'bn-IN' : language === 'hi' ? 'hi-IN' : 'en-IN';
+      recognition.interimResults = false;
+      recognition.continuous = false;
+      recognition.onstart = () => {
+        setIsRecording(true);
+        setSpeechStatus(labelText.listening);
+        setError(null);
+      };
+      recognition.onresult = (event) => {
+        const transcript = Array.from(event.results)
+          .map((result) => result[0]?.transcript || '')
+          .join(' ')
+          .trim();
+        if (transcript) {
+          setObservations((current) => (current ? `${current} ${transcript}` : transcript));
+          setSpeechStatus(labelText.ready);
+        } else {
+          setSpeechStatus(labelText.noSpeech);
+        }
+      };
+      recognition.onerror = (event) => {
+        setSpeechStatus(event.error === 'not-allowed' ? labelText.micUnavailable : labelText.failed);
+        setError(event.error === 'not-allowed' ? labelText.micUnavailable : 'Voice input could not be captured. Please try again or type the observation manually.');
+        setIsRecording(false);
+      };
+      recognition.onend = () => setIsRecording(false);
+      recognition.start();
+      return;
+    }
+
     if (!navigator.mediaDevices?.getUserMedia) {
       setError('This browser does not support microphone input. Please use Chrome or Edge.');
       return;
@@ -393,6 +497,10 @@ export default function DiagnosePage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedFile) return;
+    if (!cropType) {
+      setError(language === 'bn' ? 'বিশ্লেষণের আগে ফসল নির্বাচন করুন।' : language === 'hi' ? 'विश्लेषण से पहले फसल चुनें।' : 'Please select the crop before analysis.');
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -435,6 +543,24 @@ export default function DiagnosePage() {
     }
   };
 
+  const speakResult = () => {
+    if (!window.speechSynthesis || !displayExplanation) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(`${displayDiagnosis}. ${displayExplanation}`);
+    utterance.lang = language === 'bn' ? 'bn-IN' : language === 'hi' ? 'hi-IN' : 'en-IN';
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const copyResult = async () => {
+    const summary = `${displayDiagnosis}\n${displayExplanation}\nConfidence: ${Math.round((result?.confidence || 0) * 100)}%`;
+    try {
+      await navigator.clipboard.writeText(summary);
+      setSpeechStatus(labelText.copied);
+    } catch {
+      setError('The summary could not be copied. Please select the result text manually.');
+    }
+  };
+
   const resetForm = () => {
     if (imagePreview) URL.revokeObjectURL(imagePreview);
     setSelectedFile(null);
@@ -472,6 +598,7 @@ export default function DiagnosePage() {
                 setImagePreview(null);
               }}
             />
+            <p className="rounded-lg border border-emerald-900/60 bg-emerald-950/30 px-4 py-3 text-sm text-emerald-200">{labelText.imageQuality}</p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -553,13 +680,14 @@ export default function DiagnosePage() {
               />
               {speechStatus && <p className="mt-2 text-sm text-emerald-700">{speechStatus}</p>}
             </div>
+            <p className="text-xs leading-5 text-slate-400">{labelText.privacy}</p>
 
             {error && <div className="p-4 bg-red-50 text-red-700 border-l-4 border-red-500 rounded">{error}</div>}
 
             <button 
               type="submit" 
               className="btn-primary w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl shadow-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center"
-              disabled={!selectedFile || loading}
+              disabled={!selectedFile || !cropType || loading}
             >
               {loading ? <LoadingSpinner /> : `🔍 ${labelText.analyze}`}
             </button>
@@ -580,8 +708,16 @@ export default function DiagnosePage() {
             <p className="text-gray-700 text-lg mb-8 leading-relaxed">
               {displayExplanation}
             </p>
+            <div className="mb-8 flex flex-wrap gap-3">
+              <button type="button" onClick={speakResult} className="rounded-lg border border-emerald-700 px-4 py-2 text-sm font-semibold text-emerald-300 hover:bg-emerald-950/50">🔊 {labelText.readResult}</button>
+              <button type="button" onClick={copyResult} className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-semibold text-slate-300 hover:bg-slate-800">📋 Copy summary</button>
+            </div>
 
-            {displaySolution && (
+            {result.diagnosisType === 'IMAGE_NOT_MATCHED' ? (
+              <div className="mb-8 rounded-xl border border-red-200 bg-red-950/40 p-5">
+                <p className="text-lg font-semibold text-red-200">Please retake the photo before using any treatment.</p>
+              </div>
+            ) : displaySolution && (
               <div className="mb-8 rounded-xl border border-emerald-200 bg-emerald-50 p-5">
                 <h3 className="text-xl font-bold text-emerald-900 mb-2">
                   {language === 'bn' ? '✅ রোগের সঠিক সমাধান' : language === 'hi' ? '✅ रोग का सही समाधान' : '✅ Proper Disease Solution'}
@@ -590,14 +726,14 @@ export default function DiagnosePage() {
               </div>
             )}
 
-            {result.candidates && result.candidates.length > 0 && (
+            {result.diagnosisType !== 'IMAGE_NOT_MATCHED' && result.candidates && result.candidates.length > 0 && (
               <div className="mb-8">
                 <h3 className="text-xl font-bold text-gray-800 mb-4">{labelText.alternativePossibilities}</h3>
                 <CandidateList candidates={result.candidates} />
               </div>
             )}
 
-            <div className="mb-8">
+            {result.diagnosisType !== 'IMAGE_NOT_MATCHED' && <div className="mb-8">
               <h3 className="text-xl font-bold text-gray-800 mb-4">{labelText.actionPlan}</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <ActionCard
@@ -619,7 +755,7 @@ export default function DiagnosePage() {
                   actions={actionGroups.prevention}
                 />
               </div>
-            </div>
+            </div>}
 
             {displayWarnings && displayWarnings.length > 0 && (
               <div className="mb-8">

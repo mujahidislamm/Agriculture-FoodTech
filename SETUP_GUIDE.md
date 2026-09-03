@@ -126,7 +126,7 @@ Get a free API key from: https://www.data.gov.in
 ## Project Structure
 
 ```
-Agriculture-FoodTech/
+frontend/desktop-tutorial/
 ├── frontend/
 │   └── desktop-tutorial/          # Main application
 │       ├── frontend/              # React application
