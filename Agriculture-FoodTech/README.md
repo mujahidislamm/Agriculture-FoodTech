@@ -1,2 +1,0 @@
-# Agriculture-FoodTech
-THIS IS OUR FIRST HACKATHON POJECT

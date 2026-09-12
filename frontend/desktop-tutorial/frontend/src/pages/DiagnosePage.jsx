@@ -63,6 +63,13 @@ export default function DiagnosePage() {
       micUnavailable: 'Microphone unavailable.',
       chooseImage: 'Please choose a valid image file.',
       imageTooLarge: 'Image size must be 10 MB or less.',
+      imageQuality: 'Use one clear leaf in natural light. Avoid people, tables, documents, and distant plants.',
+      privacy: 'Your image is used for this diagnosis and is removed from temporary processing storage after analysis.',
+      readResult: 'Read result aloud',
+      copied: 'Diagnosis summary copied.',
+      copySummary: 'Copy summary',
+      retakePhoto: 'Please retake the photo before using any treatment.',
+      confidence: 'Confidence',
     },
     bn: {
       cropType: 'ফসলের ধরন',
@@ -92,6 +99,13 @@ export default function DiagnosePage() {
       micUnavailable: 'মাইক্রোফোন উপলব্ধ নয়।',
       chooseImage: 'অনুগ্রহ করে একটি বৈধ ছবি নির্বাচন করুন।',
       imageTooLarge: 'ছবির আকার 10 MB এর কম হতে হবে।',
+      imageQuality: 'প্রাকৃতিক আলোতে একটি পরিষ্কার পাতার ছবি ব্যবহার করুন। মানুষ, টেবিল, নথি ও দূরের গাছ এড়িয়ে চলুন।',
+      privacy: 'এই ছবিটি শুধু রোগ নির্ণয়ের জন্য ব্যবহার করা হয় এবং বিশ্লেষণের পর অস্থায়ী স্টোরেজ থেকে মুছে ফেলা হয়।',
+      readResult: 'ফলাফল পড়ে শোনান',
+      copied: 'রোগ নির্ণয়ের সারাংশ কপি হয়েছে।',
+      copySummary: 'সারাংশ কপি করুন',
+      retakePhoto: 'কোনো চিকিৎসা ব্যবহারের আগে ছবিটি আবার তুলুন।',
+      confidence: 'আত্মবিশ্বাস',
     },
     hi: {
       cropType: 'फसल का प्रकार',
@@ -121,6 +135,13 @@ export default function DiagnosePage() {
       micUnavailable: 'माइक्रोफोन उपलब्ध नहीं है।',
       chooseImage: 'कृपया एक सही छवि चुनें।',
       imageTooLarge: 'छवि का आकार 10 MB से कम होना चाहिए।',
+      imageQuality: 'प्राकृतिक रोशनी में एक साफ़ पत्ते की तस्वीर लें। इंसान, टेबल, दस्तावेज़ और दूर के पौधों से बचें।',
+      privacy: 'इस तस्वीर का उपयोग केवल निदान के लिए किया जाता है और विश्लेषण के बाद अस्थायी स्टोरेज से हटा दिया जाता है।',
+      readResult: 'नतीजा सुनाएं',
+      copied: 'निदान सारांश कॉपी हो गया।',
+      copySummary: 'सारांश कॉपी करें',
+      retakePhoto: 'किसी भी उपचार से पहले तस्वीर दोबारा लें।',
+      confidence: 'विश्वास',
     },
   };
 
@@ -162,6 +183,12 @@ export default function DiagnosePage() {
     },
   };
 
+  Object.entries({
+    en: { seedling: 'Seedling', vegetative: 'Vegetative', flowering: 'Flowering', fruiting: 'Fruiting', harvest: 'Harvest' },
+    bn: { seedling: 'চারা', vegetative: 'বৃদ্ধি পর্যায়', flowering: 'ফুল ধরা', fruiting: 'ফল ধরা', harvest: 'ফসল কাটা' },
+    hi: { seedling: 'पौधा', vegetative: 'वानस्पतिक', flowering: 'फूल आना', fruiting: 'फल लगना', harvest: 'कटाई' },
+  }).forEach(([code, stagesByCode]) => Object.assign(cropStageMap[code], stagesByCode));
+
   const translateCropName = (name) => cropNameMap[language]?.[name] || cropNameMap.en?.[name] || name;
   const translateStageName = (stage) => cropStageMap[language]?.[stage] || cropStageMap.en?.[stage] || stage;
 
@@ -173,15 +200,189 @@ export default function DiagnosePage() {
     return message;
   };
 
-  const displayDiagnosis = language === 'en' ? result?.primaryDiagnosis : result?.translatedAdvisory?.diagnosisLabel || result?.primaryDiagnosis;
-  const displayExplanation = language === 'en' ? result?.explanation : result?.translatedAdvisory?.explanation || result?.explanation;
-  const displaySolution = language === 'en' ? result?.solutionSummary : result?.translatedAdvisory?.solutionSummary || result?.solutionSummary || result?.explanation;
-  const displayActions = language === 'en' ? result?.nextActions : result?.translatedAdvisory?.nextActions || result?.nextActions;
-  const displayWarnings = language === 'en' ? result?.safetyWarnings : result?.translatedAdvisory?.safetyWarnings || result?.safetyWarnings;
-  const displayEscalation = language === 'en' ? result?.escalationInfo : result?.translatedAdvisory?.escalationInfo || result?.escalationInfo;
+  const localizedResult = language === 'en' ? null : result?.translatedAdvisory;
+  const clientTranslations = {
+    hi: {
+      'Strong water spray to dislodge mites': 'माइट हटाने के लिए तेज़ पानी का छिड़काव करें',
+      'Neem oil': 'नीम तेल',
+      'Release predatory mites if available': 'उपलब्ध होने पर शिकारी माइट छोड़ें',
+      'Maintain field hygiene': 'खेत की स्वच्छता बनाए रखें',
+      'Avoid water stress': 'पानी की कमी से बचें',
+      'Intercrop with marigold': 'गेंदा के साथ अंतरफसल उगाएँ',
+      'Apply to leaf undersides.': 'पत्तियों की निचली सतह पर लगाएँ।',
+      'Rotate chemicals to prevent resistance.': 'प्रतिरोध रोकने के लिए रसायन बदलते रहें।',
+      'wear full PPE, toxic to aquatic life.': 'पूरा सुरक्षा उपकरण पहनें, यह जलीय जीवों के लिए विषैला है।',
+      'Wash all harvested produce before consumption.': 'खाने से पहले सभी कटी फसल को अच्छी तरह धोएँ।',
+      'New Alluvial': 'नया जलोढ़ क्षेत्र',
+      'Alluvial Clay': 'जलोढ़ चिकनी मिट्टी',
+      'Vegetables': 'सब्ज़ियाँ',
+      'Flowers': 'फूल',
+      'Pest (': 'कीट (',
+      'Fruiting stage': 'फल लगने की अवस्था',
+      'fruiting stage': 'फल लगने की अवस्था',
+      'फल लगना चरण': 'फल लगने की अवस्था',
+      'Fast-spreading water-soaked dark patches. Can kill plants within a week.': 'तेजी से फैलने वाले पानी जैसे गीले गहरे धब्बे। एक सप्ताह में पौधों को नष्ट कर सकते हैं।',
+      'Dark water-soaked lesions': 'पानी जैसे गीले गहरे घाव',
+      'White fuzzy growth in humid conditions': 'नम परिस्थितियों में सफेद रूई जैसी वृद्धि',
+      'Brown firm fruit rot': 'फल का कड़ा भूरा सड़ना',
+      'Fungal (': 'फफूंद (',
+    },
+    bn: {
+      'Strong water spray to dislodge mites': 'জোরে জল স্প্রে করে মাইট ঝরিয়ে ফেলুন',
+      'Neem oil': 'নিম তেল',
+      'Release predatory mites if available': 'সম্ভব হলে শিকারি মাইট ছেড়ে দিন',
+      'Maintain field hygiene': 'মাঠ পরিষ্কার-পরিচ্ছন্ন রাখুন',
+      'Avoid water stress': 'জলের ঘাটতি এড়িয়ে চলুন',
+      'Intercrop with marigold': 'গাঁদা ফুলের সঙ্গে আন্তঃফসল চাষ করুন',
+      'Apply to leaf undersides.': 'পাতার নিচের দিকে প্রয়োগ করুন।',
+      'Rotate chemicals to prevent resistance.': 'প্রতিরোধ ক্ষমতা ঠেকাতে রাসায়নিক বদলে ব্যবহার করুন।',
+      'wear full PPE, toxic to aquatic life.': 'সম্পূর্ণ সুরক্ষা সরঞ্জাম পরুন, এটি জলজ প্রাণীর জন্য বিষাক্ত।',
+      'Wash all harvested produce before consumption.': 'খাওয়ার আগে সব কাটা ফসল ভালোভাবে ধুয়ে নিন।',
+      'New Alluvial': 'নতুন পলিমাটি অঞ্চল',
+      'Alluvial Clay': 'পলিমাটির এঁটেল মাটি',
+      'Vegetables': 'সবজি',
+      'Flowers': 'ফুল',
+      'Pest (': 'কীটপতঙ্গ (',
+      'Fruiting stage': 'ফল ধরার পর্যায়',
+      'fruiting stage': 'ফল ধরার পর্যায়',
+      'ফল ধরা পর্যায়': 'ফল ধরার পর্যায়',
+      'Fast-spreading water-soaked dark patches. Can kill plants within a week.': 'দ্রুত ছড়ানো জলভেজা কালচে দাগ। এক সপ্তাহের মধ্যে গাছ নষ্ট করতে পারে।',
+      'Dark water-soaked lesions': 'জলভেজা কালচে ক্ষত',
+      'White fuzzy growth in humid conditions': 'আর্দ্র পরিবেশে সাদা তুলোর মতো বৃদ্ধি',
+      'Brown firm fruit rot': 'ফলের শক্ত বাদামি পচন',
+      'Fungal (': 'ছত্রাক (',
+    },
+  }[language] || {};
+  const localizeText = (value) => {
+    if (typeof value !== 'string' || language === 'en') return value;
+    return Object.entries(clientTranslations)
+      .sort((left, right) => right[0].length - left[0].length)
+      .reduce((text, [source, target]) => text.split(source).join(target), value);
+  };
+  const localizeList = (values) => (values || []).map(localizeText);
+  const displayDiagnosis = localizeText(localizedResult?.diagnosisLabel || result?.primaryDiagnosis);
+  const displayExplanation = localizeText(localizedResult?.explanation || result?.explanation);
+  const displaySolution = localizeText(localizedResult?.solutionSummary || result?.solutionSummary || result?.explanation);
+  const displayActions = localizeList(localizedResult?.nextActions || result?.nextActions);
+  const displayWarnings = localizeList(localizedResult?.safetyWarnings || result?.safetyWarnings);
+  const displayEscalation = localizeText(localizedResult?.escalationInfo || result?.escalationInfo);
+  const displayCandidates = (localizedResult?.candidates?.length ? localizedResult.candidates : result?.candidates || []).map((candidate) => ({
+    ...candidate,
+    diseaseName: localizeText(candidate.diseaseName),
+    explanation: localizeText(candidate.explanation),
+  }));
+  const displayWeatherContext = localizeText(localizedResult?.weatherContext || result?.weatherContext);
+  const displayCropStageRelevance = localizeText(localizedResult?.cropStageRelevance || result?.cropStageRelevance);
+  const displayDistrictContext = localizeText(localizedResult?.districtContext || result?.districtContext);
+  const localizedWeatherCondition = (condition) => {
+    if (!condition || language === 'en') return condition;
+    const conditions = {
+      'Partly cloudy': { bn: 'আংশিক মেঘলা', hi: 'आंशिक बादल' },
+      'Rain showers': { bn: 'বৃষ্টির ঝরনা', hi: 'बारिश की बौछार' },
+      'Humid and cloudy': { bn: 'আর্দ্র ও মেঘলা', hi: 'नम और बादल वाला' },
+      'Windy': { bn: 'ঝোড়ো হাওয়া', hi: 'हवादार' },
+      'Hot and dry': { bn: 'গরম ও শুষ্ক', hi: 'गर्म और शुष्क' },
+    };
+    return conditions[condition]?.[language] || condition;
+  };
 
-  const handleFileSelect = (file) => {
-    if (!file?.type.startsWith('image/')) {
+  useEffect(() => {
+    if (!result || !selectedFile) return;
+    const resultLanguage = result.translatedAdvisory?.language || 'en';
+    if (resultLanguage === language) return;
+
+    let active = true;
+    diagnose(selectedFile, { cropType, cropStage, district, latitude, longitude, observations, language })
+      .then((response) => {
+        if (active) setResult(response.data);
+      })
+      .catch(() => {
+        if (active) setError(language === 'bn'
+          ? 'ভাষা পরিবর্তন করা যায়নি। আবার চেষ্টা করুন।'
+          : language === 'hi'
+            ? 'भाषा बदली नहीं जा सकी। फिर कोशिश करें।'
+            : 'The language could not be changed. Please try again.');
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [language]);
+
+  const actionGroups = (() => {
+    const groups = { organic: [], chemical: [], prevention: [] };
+    let currentGroup = 'organic';
+    (displayActions || []).forEach((action) => {
+      const text = String(action);
+      if (/step\s*2|chemical|চরণ\s*২|রাসায়নিক|चरण\s*२|रासायनिक/i.test(text)) {
+        currentGroup = 'chemical';
+      } else if (/step\s*3|prevent|ধাপ\s*৩|প্রতিরোধ|चरण\s*३|रोकथाम/i.test(text)) {
+        currentGroup = 'prevention';
+      } else if (/step\s*1|organic|immediate|ধাপ\s*১|জৈব|তাৎক্ষণিক|चरण\s*१|जैविक|तुरंत/i.test(text)) {
+        currentGroup = 'organic';
+      } else {
+        groups[currentGroup].push(action);
+      }
+    });
+    return groups;
+  })();
+
+  const validateImageContent = (file) => new Promise((resolve) => {
+    const image = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    image.onload = () => {
+      try {
+        if (image.naturalWidth < 160 || image.naturalHeight < 160) {
+          resolve('Image is too small. Please upload a clear crop-leaf photo at least 160 × 160 pixels.');
+          return;
+        }
+        const canvas = document.createElement('canvas');
+        const size = 96;
+        canvas.width = size;
+        canvas.height = size;
+        const context = canvas.getContext('2d', { willReadFrequently: true });
+        context.drawImage(image, 0, 0, size, size);
+        const pixels = context.getImageData(0, 0, size, size).data;
+        let brightnessTotal = 0;
+        let brightnessSquared = 0;
+        let colorfulPixels = 0;
+        for (let index = 0; index < pixels.length; index += 4) {
+          const red = pixels[index];
+          const green = pixels[index + 1];
+          const blue = pixels[index + 2];
+          const brightness = (red + green + blue) / 3;
+          brightnessTotal += brightness;
+          brightnessSquared += brightness * brightness;
+          if (Math.max(red, green, blue) - Math.min(red, green, blue) > 28) colorfulPixels += 1;
+        }
+        const count = pixels.length / 4;
+        const averageBrightness = brightnessTotal / count;
+        const variance = brightnessSquared / count - averageBrightness ** 2;
+        if (averageBrightness < 18 || averageBrightness > 242) {
+          resolve('This image is too dark or overexposed. Please retake the crop leaf photo in natural light.');
+          return;
+        }
+        if (variance < 20 && colorfulPixels / count < 0.04) {
+          resolve('This image does not contain enough visible leaf detail. Please upload a focused crop-leaf photo, not a table or document.');
+          return;
+        }
+        resolve('');
+      } catch {
+        resolve('The image could not be checked. Please upload a JPG or PNG crop-leaf photo.');
+      } finally {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve('This image format cannot be read in the browser. Please use JPG or PNG.');
+    };
+    image.src = objectUrl;
+  });
+
+  const handleFileSelect = async (file) => {
+    const isImage = /^image\/(jpeg|png|webp)$/i.test(file?.type || '') || /\.(jpe?g|png|webp)$/i.test(file?.name || '');
+    if (!isImage) {
       setError(getLocalizedError(labelText.chooseImage));
       return;
     }
@@ -190,10 +391,25 @@ export default function DiagnosePage() {
       return;
     }
 
+    const contentError = await validateImageContent(file);
+    if (contentError) {
+      setError(contentError);
+      return;
+    }
+
     setError(null);
     setSelectedFile(file);
     if (imagePreview) URL.revokeObjectURL(imagePreview);
-    setImagePreview(URL.createObjectURL(file));
+    const previewUrl = URL.createObjectURL(file);
+    const previewImage = new Image();
+    previewImage.onload = () => setImagePreview(previewUrl);
+    previewImage.onerror = () => {
+      URL.revokeObjectURL(previewUrl);
+      setSelectedFile(null);
+      setImagePreview(null);
+      setError('This image cannot be read reliably. Please use a JPG or PNG crop-leaf photo.');
+    };
+    previewImage.src = previewUrl;
   };
 
   useEffect(() => {
@@ -289,6 +505,39 @@ export default function DiagnosePage() {
   });
 
   const startVoiceCapture = async () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.lang = language === 'bn' ? 'bn-IN' : language === 'hi' ? 'hi-IN' : 'en-IN';
+      recognition.interimResults = false;
+      recognition.continuous = false;
+      recognition.onstart = () => {
+        setIsRecording(true);
+        setSpeechStatus(labelText.listening);
+        setError(null);
+      };
+      recognition.onresult = (event) => {
+        const transcript = Array.from(event.results)
+          .map((result) => result[0]?.transcript || '')
+          .join(' ')
+          .trim();
+        if (transcript) {
+          setObservations((current) => (current ? `${current} ${transcript}` : transcript));
+          setSpeechStatus(labelText.ready);
+        } else {
+          setSpeechStatus(labelText.noSpeech);
+        }
+      };
+      recognition.onerror = (event) => {
+        setSpeechStatus(event.error === 'not-allowed' ? labelText.micUnavailable : labelText.failed);
+        setError(event.error === 'not-allowed' ? labelText.micUnavailable : 'Voice input could not be captured. Please try again or type the observation manually.');
+        setIsRecording(false);
+      };
+      recognition.onend = () => setIsRecording(false);
+      recognition.start();
+      return;
+    }
+
     if (!navigator.mediaDevices?.getUserMedia) {
       setError('This browser does not support microphone input. Please use Chrome or Edge.');
       return;
@@ -365,6 +614,10 @@ export default function DiagnosePage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedFile) return;
+    if (!cropType) {
+      setError(language === 'bn' ? 'বিশ্লেষণের আগে ফসল নির্বাচন করুন।' : language === 'hi' ? 'विश्लेषण से पहले फसल चुनें।' : 'Please select the crop before analysis.');
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -401,9 +654,34 @@ export default function DiagnosePage() {
       }
     } catch (err) {
       console.error(err);
-      setError('The diagnosis could not complete with the current image or connection, but the field symptoms still provide useful guidance. Re-check the photo, adjust the crop stage, and continue with the advisory steps using local observation and KVK support.');
+      const status = err.response?.status;
+      setError(status === 400
+        ? (language === 'bn' ? 'ছবিতে পর্যাপ্ত পাতার বিবরণ নেই। পরিষ্কার ছবি দিন।' : language === 'hi' ? 'छवि में पत्ती का पर्याप्त विवरण नहीं है। साफ़ तस्वीर दें।' : 'The image has too little leaf detail. Upload a clearer photo.')
+        : language === 'bn'
+          ? 'রোগ নির্ণয় ব্যর্থ হয়েছে। আবার চেষ্টা করুন।'
+          : language === 'hi'
+            ? 'निदान विफल हुआ। फिर कोशिश करें।'
+            : 'Diagnosis failed. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const speakResult = () => {
+    if (!window.speechSynthesis || !displayExplanation) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(`${displayDiagnosis}. ${displayExplanation}`);
+    utterance.lang = language === 'bn' ? 'bn-IN' : language === 'hi' ? 'hi-IN' : 'en-IN';
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const copyResult = async () => {
+    const summary = `${displayDiagnosis}\n${displayExplanation}\n${labelText.confidence}: ${Math.round((result?.confidence || 0) * 100)}%`;
+    try {
+      await navigator.clipboard.writeText(summary);
+      setSpeechStatus(labelText.copied);
+    } catch {
+      setError(language === 'bn' ? 'সারাংশ কপি করা যায়নি। ফলাফলের লেখা হাতে নির্বাচন করুন।' : language === 'hi' ? 'सारांश कॉपी नहीं हो सका। परिणाम का टेक्स्ट स्वयं चुनें।' : 'The summary could not be copied. Please select the result text manually.');
     }
   };
 
@@ -444,6 +722,7 @@ export default function DiagnosePage() {
                 setImagePreview(null);
               }}
             />
+            <p className="rounded-lg border border-emerald-900/60 bg-emerald-950/30 px-4 py-3 text-sm text-emerald-200">{labelText.imageQuality}</p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -519,19 +798,20 @@ export default function DiagnosePage() {
               <textarea 
                 className="input-field w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500" 
                 rows="3" 
-                placeholder={language === 'bn' ? 'আপনি কী other symptoms দেখছেন তা বর্ণনা করুন...' : language === 'hi' ? 'आपको कौन-सी अन्य लक्षण दिख रहे हैं, लिखें...' : 'Describe any other symptoms you see...'}
+                placeholder={language === 'bn' ? 'আপনি কী কী অন্য লক্ষণ দেখছেন তা বর্ণনা করুন...' : language === 'hi' ? 'आपको कौन-से अन्य लक्षण दिख रहे हैं, लिखें...' : 'Describe any other symptoms you see...'}
                 value={observations}
                 onChange={e => setObservations(e.target.value)}
               />
               {speechStatus && <p className="mt-2 text-sm text-emerald-700">{speechStatus}</p>}
             </div>
+            <p className="text-xs leading-5 text-slate-400">{labelText.privacy}</p>
 
             {error && <div className="p-4 bg-red-50 text-red-700 border-l-4 border-red-500 rounded">{error}</div>}
 
             <button 
               type="submit" 
               className="btn-primary w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl shadow-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center"
-              disabled={!selectedFile || loading}
+              disabled={!selectedFile || !cropType || loading}
             >
               {loading ? <LoadingSpinner /> : `🔍 ${labelText.analyze}`}
             </button>
@@ -542,18 +822,26 @@ export default function DiagnosePage() {
           <div className="card bg-white p-6 md:p-8 rounded-xl shadow-lg border-t-4 border-emerald-600">
             <div className="flex justify-between items-start mb-6 flex-wrap gap-4">
               <h2 className="text-3xl font-bold text-gray-800">{displayDiagnosis}</h2>
-              <DiagnosisBadge type={result.diagnosisType} />
+              <DiagnosisBadge type={result.diagnosisType} language={language} />
             </div>
             
             <div className="mb-6">
-              <ConfidenceGauge value={result.confidence} />
+              <ConfidenceGauge value={result.confidence} language={language} />
             </div>
             
             <p className="text-gray-700 text-lg mb-8 leading-relaxed">
               {displayExplanation}
             </p>
+            <div className="mb-8 flex flex-wrap gap-3">
+              <button type="button" onClick={speakResult} className="rounded-lg border border-emerald-700 px-4 py-2 text-sm font-semibold text-emerald-300 hover:bg-emerald-950/50">🔊 {labelText.readResult}</button>
+              <button type="button" onClick={copyResult} className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-semibold text-slate-300 hover:bg-slate-800">📋 {labelText.copySummary}</button>
+            </div>
 
-            {displaySolution && (
+            {result.diagnosisType === 'IMAGE_NOT_MATCHED' ? (
+              <div className="mb-8 rounded-xl border border-red-200 bg-red-950/40 p-5">
+                <p className="text-lg font-semibold text-red-200">{labelText.retakePhoto}</p>
+              </div>
+            ) : displaySolution && (
               <div className="mb-8 rounded-xl border border-emerald-200 bg-emerald-50 p-5">
                 <h3 className="text-xl font-bold text-emerald-900 mb-2">
                   {language === 'bn' ? '✅ রোগের সঠিক সমাধান' : language === 'hi' ? '✅ रोग का सही समाधान' : '✅ Proper Disease Solution'}
@@ -562,52 +850,53 @@ export default function DiagnosePage() {
               </div>
             )}
 
-            {result.candidates && result.candidates.length > 0 && (
+            {result.diagnosisType !== 'IMAGE_NOT_MATCHED' && displayCandidates && displayCandidates.length > 0 && (
               <div className="mb-8">
                 <h3 className="text-xl font-bold text-gray-800 mb-4">{labelText.alternativePossibilities}</h3>
-                <CandidateList candidates={result.candidates} />
+                <CandidateList candidates={displayCandidates} language={language} />
               </div>
             )}
 
-            <div className="mb-8">
+            {result.diagnosisType !== 'IMAGE_NOT_MATCHED' && <div className="mb-8">
               <h3 className="text-xl font-bold text-gray-800 mb-4">{labelText.actionPlan}</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <ActionCard
                   stepNumber={1}
                   icon="🌿"
                   title={language === 'bn' ? 'ধাপ ১: জৈব' : language === 'hi' ? 'चरण 1: जैविक' : 'Step 1: Organic'}
-                  actions={displayActions?.filter((a) => /step 1|জৈব|जैविक/i.test(String(a))) ?? (displayActions && displayActions.length > 0 ? [displayActions[0]] : [])}
+                  actions={actionGroups.organic}
                 />
                 <ActionCard
                   stepNumber={2}
                   icon="💊"
                   title={language === 'bn' ? 'ধাপ ২: রাসায়নিক' : language === 'hi' ? 'चरण 2: रासायनिक' : 'Step 2: Chemical'}
-                  actions={displayActions?.filter((a) => /step 2|dosage|রাসায়নিক|रासायनिक/i.test(String(a))) ?? (displayActions && displayActions.length > 1 ? displayActions.slice(1, 3) : [])}
+                  actions={actionGroups.chemical}
                 />
                 <ActionCard
                   stepNumber={3}
                   icon="🛡️"
                   title={language === 'bn' ? 'ধাপ ৩: প্রতিরোধ' : language === 'hi' ? 'चरण 3: रोकथाम' : 'Step 3: Prevention'}
-                  actions={displayActions?.filter((a) => /step 3|prevent|প্রতিরোধ|रोकथाम/i.test(String(a))) ?? (displayActions && displayActions.length > 2 ? displayActions.slice(2) : [])}
+                  actions={actionGroups.prevention}
                 />
               </div>
-            </div>
+            </div>}
 
             {displayWarnings && displayWarnings.length > 0 && (
               <div className="mb-8">
-                <SafetyWarnings warnings={displayWarnings} />
+                <SafetyWarnings warnings={displayWarnings} language={language} />
               </div>
             )}
 
             <div className="mb-8">
-              <EscalationAlert show={result.escalateToExpert} info={displayEscalation} />
+              <EscalationAlert show={result.escalateToExpert} info={displayEscalation} language={language} />
             </div>
 
             <div className="mb-8">
               <WeatherCard 
-                weatherContext={result.weatherContext} 
-                cropStageRelevance={result.cropStageRelevance} 
-                districtContext={result.districtContext} 
+                weatherContext={displayWeatherContext}
+                cropStageRelevance={displayCropStageRelevance}
+                districtContext={displayDistrictContext}
+                language={language}
               />
             </div>
 
@@ -617,7 +906,7 @@ export default function DiagnosePage() {
                   <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
                     <h3 className="text-lg font-bold text-emerald-900 mb-2">{labelText.liveWeather}</h3>
                     <p className="text-3xl font-bold text-emerald-800">{liveWeather.temperatureC ?? '--'}°C</p>
-                    <p className="text-sm text-gray-700">{liveWeather.condition || (language === 'bn' ? 'আবহাওয়া ডেটা প্রস্তুত' : language === 'hi' ? 'मौसम डेटा तैयार है' : 'Weather data ready')}</p>
+                    <p className="text-sm text-gray-700">{localizedWeatherCondition(liveWeather.condition) || (language === 'bn' ? 'আবহাওয়া ডেটা প্রস্তুত' : language === 'hi' ? 'मौसम डेटा तैयार है' : 'Weather data ready')}</p>
                     <p className="text-xs text-gray-600 mt-2">{language === 'bn' ? 'আর্দ্রতা' : language === 'hi' ? 'नमी' : 'Humidity'}: {liveWeather.humidityPercent ?? '--'}% • {language === 'bn' ? 'হাওয়া' : language === 'hi' ? 'हवा' : 'Wind'}: {liveWeather.windKph ?? '--'} km/h</p>
                   </div>
                 )}
@@ -644,38 +933,6 @@ export default function DiagnosePage() {
                         </div>
                       ))}
                     </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {language !== 'en' && result.translatedAdvisory && (
-              <div className="bg-indigo-50 p-6 rounded-xl border border-indigo-100 mb-8">
-                <h3 className="text-xl font-bold text-indigo-900 mb-4">{labelText.advisoryLocal}</h3>
-                <h4 className="font-bold text-lg mb-2">{result.translatedAdvisory.diagnosisLabel}</h4>
-                <p className="mb-4 text-gray-800">{result.translatedAdvisory.explanation}</p>
-                
-                <h5 className="font-semibold mb-2 mt-4">{labelText.nextActions}</h5>
-                <ul className="list-disc pl-5 mb-4 text-gray-800">
-                  {result.translatedAdvisory.nextActions?.map((action, idx) => (
-                    <li key={idx}>{action}</li>
-                  ))}
-                </ul>
-
-                {result.translatedAdvisory.safetyWarnings?.length > 0 && (
-                  <>
-                    <h5 className="font-semibold mb-2 mt-4 text-red-800">{labelText.safetyWarnings}</h5>
-                    <ul className="list-disc pl-5 mb-4 text-red-800">
-                      {result.translatedAdvisory.safetyWarnings.map((warning, idx) => (
-                        <li key={idx}>{warning}</li>
-                      ))}
-                    </ul>
-                  </>
-                )}
-                
-                {result.escalateToExpert && result.translatedAdvisory.escalationInfo && (
-                  <div className="mt-4 p-4 bg-orange-100 text-orange-900 rounded-lg font-medium">
-                    {result.translatedAdvisory.escalationInfo}
                   </div>
                 )}
               </div>

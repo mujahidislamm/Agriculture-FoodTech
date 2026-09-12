@@ -1,7 +1,12 @@
 import React from 'react';
 
-export default function EscalationAlert({ show, info }) {
+export default function EscalationAlert({ show, info, language = 'en' }) {
   if (!show || !info) return null;
+  const labels = {
+    en: { title: 'Expert Consultation Recommended', call: 'Call' },
+    bn: { title: 'বিশেষজ্ঞের পরামর্শ নেওয়া প্রয়োজন', call: 'ফোন করুন' },
+    hi: { title: 'विशेषज्ञ की सलाह आवश्यक है', call: 'फोन करें' },
+  }[language] || { title: 'Expert Consultation Recommended', call: 'Call' };
 
   // Extremely basic phone number extraction
   const phonePattern = /(\+?\d{1,3}[\s-]?)?(\(?\d{3}\)?[\s-]?)?[\d\s-]{7,10}/g;
@@ -11,7 +16,7 @@ export default function EscalationAlert({ show, info }) {
     <div className="bg-red-50 border-l-4 border-red-500 rounded-r-lg p-5 mb-6 shadow-sm">
       <div className="flex items-center mb-3">
         <span className="text-2xl mr-2">🚨</span>
-        <h3 className="text-lg font-bold text-red-900">Expert Consultation Recommended</h3>
+        <h3 className="text-lg font-bold text-red-900">{labels.title}</h3>
       </div>
       
       <p className="text-red-800 whitespace-pre-line mb-4 text-sm">
@@ -32,7 +37,7 @@ export default function EscalationAlert({ show, info }) {
                   <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                   </svg>
-                  Call {phone.trim()}
+                  {labels.call} {phone.trim()}
                 </a>
               );
             }

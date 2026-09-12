@@ -21,6 +21,8 @@ def main():
     parser.add_argument('--model', required=True, help='Path to the TorchScript model file')
     parser.add_argument('--labels', required=True, help='Path to the class-label file')
     parser.add_argument('--image', required=True, help='Path to the input leaf image')
+    parser.add_argument('--tta', type=int, choices=[1, 5], default=5,
+                        help='Number of deterministic views to average at inference time')
     args = parser.parse_args()
 
     model_path = Path(args.model)
@@ -40,17 +42,25 @@ def main():
     if not labels:
         raise ValueError(f'No class labels found in {labels_path}')
 
-    transform = transforms.Compose([
-        transforms.Resize((224, 224)),
+    image = Image.open(image_path).convert('RGB')
+    to_tensor = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
     ])
-
-    image = Image.open(image_path).convert('RGB')
-    tensor = transform(image).unsqueeze(0)
+    resized = transforms.Resize(256)(image)
+    views = [to_tensor(transforms.CenterCrop(224)(resized))]
+    if args.tta == 5:
+        crops = transforms.TenCrop(224)(resized)
+        views.extend([
+            to_tensor(transforms.functional.hflip(resized).crop((16, 16, 240, 240))),
+            to_tensor(crops[0]),
+            to_tensor(crops[4]),
+            to_tensor(crops[5]),
+        ])
+    tensor = torch.stack(views)
 
     with torch.no_grad():
-        logits = model(tensor)
+        logits = model(tensor).mean(dim=0, keepdim=True)
         probabilities = torch.softmax(logits, dim=1)[0]
 
     if len(labels) != len(probabilities):

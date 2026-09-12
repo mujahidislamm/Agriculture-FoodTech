@@ -7,7 +7,6 @@ import com.example.service.WBCropKnowledgeBase.DiseaseAdvisory;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * West Bengal advisory engine. Produces explainable, location-aware,
@@ -49,14 +48,34 @@ public class AdvisoryService {
 
         String lang = (language != null && !language.isBlank()) ? language : "en";
 
+        List<Map.Entry<String, Double>> cropPredictions = predictions.entrySet().stream()
+            .filter(entry -> matchesCrop(entry.getKey(), cropType))
+            .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+            .toList();
+        Map.Entry<String, Double> overallTop = predictions.entrySet().stream()
+            .max(Map.Entry.comparingByValue())
+            .orElseThrow();
+        if (cropType == null || cropType.isBlank()
+                || cropPredictions.isEmpty()) {
+            return imageNotMatchedResponse(lang, cropType, overallTop.getValue());
+        }
+
+        // The farmer's crop selection is useful evidence. Prefer its best matching
+        // class when the general model is uncertain instead of forcing an unrelated
+        // crop label onto a valid leaf image.
         // ── Top-K candidates ────────────────────────────────────────
-        List<Map.Entry<String, Double>> sorted = predictions.entrySet().stream()
+        List<Map.Entry<String, Double>> sorted = cropPredictions.stream()
                 .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
                 .limit(TOP_K)
                 .toList();
 
         Map.Entry<String, Double> top = sorted.get(0);
-        double confidence = top.getValue();
+        double cropProbabilityTotal = cropPredictions.stream()
+            .mapToDouble(entry -> entry.getValue())
+            .sum();
+        double confidence = cropProbabilityTotal > 0
+            ? top.getValue() / cropProbabilityTotal
+            : top.getValue();
         String primaryClass = top.getKey();
 
         // ── Diagnosis type ──────────────────────────────────────────
@@ -74,9 +93,12 @@ public class AdvisoryService {
             String candExplanation = candAdvisory != null
                     ? candAdvisory.description()
                     : "No detailed information available for this condition.";
+                double candidateConfidence = cropProbabilityTotal > 0
+                    ? entry.getValue() / cropProbabilityTotal
+                    : entry.getValue();
             candidates.add(new DiagnosisDetailDTO(
                     candAdvisory != null ? candAdvisory.diseaseName() : entry.getKey(),
-                    entry.getValue(),
+                    candidateConfidence,
                     candExplanation,
                     i == 0));
         }
@@ -112,7 +134,8 @@ public class AdvisoryService {
 
         // ── Translation ─────────────────────────────────────────────
         TranslatedAdvisoryDTO translated = buildTranslation(
-                lang, diseaseName, explanation, solutionSummary, nextActions, safetyWarnings, escalationInfo);
+            lang, diseaseName, explanation, solutionSummary, nextActions, safetyWarnings,
+            escalationInfo, weatherImpact, cropStageRelevance, districtContext, candidates);
 
         return new PredictionResponseDTO(
                 diagnosisType,
@@ -130,6 +153,49 @@ public class AdvisoryService {
                 translated,
                 districtContext);
     }
+
+            private boolean matchesCrop(String label, String cropType) {
+            if (label == null || cropType == null || cropType.isBlank()) return false;
+            String normalizedLabel = label.toLowerCase(Locale.ROOT).replace('_', ' ');
+            String normalizedCrop = cropType.toLowerCase(Locale.ROOT).trim();
+            if (normalizedCrop.equals("brinjal")) normalizedCrop = "eggplant";
+            if (normalizedCrop.equals("maize")) normalizedCrop = "corn";
+            return normalizedLabel.contains(normalizedCrop)
+                || (normalizedCrop.equals("chilli") && normalizedLabel.contains("pepper"));
+            }
+
+            private PredictionResponseDTO imageNotMatchedResponse(String language, String cropType, double confidence) {
+            String crop = cropType == null || cropType.isBlank() ? "selected crop" : cropType;
+            String explanation = "This image could not be matched confidently to " + crop
+                + ". No disease treatment has been suggested. Take a close, well-lit photo of one leaf from the selected crop, then try again.";
+            String escalation = "Please retake the image with the leaf filling most of the frame. If the result remains uncertain, consult a KVK or agriculture expert before treating the crop.";
+            return new PredictionResponseDTO(
+                "IMAGE_NOT_MATCHED",
+                "Image not matched",
+                confidence,
+                List.of(),
+                explanation,
+                "",
+                List.of("Retake a clear photo of one leaf from the selected crop.", "Use natural light and keep the affected area in focus.", "Do not apply chemical treatment based on this result."),
+                List.of(),
+                null,
+                null,
+                true,
+                escalation,
+                new TranslatedAdvisoryDTO(
+                    language,
+                    translationService.translateDiseaseName("Image not matched", language),
+                    translationService.translateNarrative(explanation, language),
+                    "",
+                    translationService.translateActions(List.of("Retake a clear photo of one leaf from the selected crop.", "Use natural light and keep the affected area in focus.", "Do not apply chemical treatment based on this result."), language),
+                    List.of(),
+                    translationService.translateNarrative(escalation, language),
+                    null,
+                    null,
+                    null,
+                    List.of()),
+                null);
+            }
 
     // ── Private helpers ─────────────────────────────────────────────────
 
@@ -378,22 +444,37 @@ public class AdvisoryService {
     private TranslatedAdvisoryDTO buildTranslation(String lang, String diseaseName,
                                                      String explanation, String solutionSummary,
                                                      List<String> nextActions,
-                                                     List<String> safetyWarnings, String escalationInfo) {
+                                 List<String> safetyWarnings, String escalationInfo,
+                                 String weatherContext, String cropStageRelevance,
+                                 String districtContext, List<DiagnosisDetailDTO> candidates) {
         if ("en".equals(lang)) return null; // No translation needed
 
         String localizedSolution = solutionSummary != null
-                ? translationService.translateActions(List.of(solutionSummary), lang).getFirst()
+            ? translationService.translateNarrative(solutionSummary, lang)
                 : null;
+
+        List<DiagnosisDetailDTO> localizedCandidates = candidates.stream()
+            .map(candidate -> new DiagnosisDetailDTO(
+                translationService.translateDiseaseName(candidate.diseaseName(), lang),
+                candidate.confidence(),
+                translationService.translateNarrative(candidate.explanation(), lang),
+                candidate.isTopPick()))
+            .toList();
 
         return new TranslatedAdvisoryDTO(
                 lang,
                 translationService.translateDiseaseName(diseaseName, lang),
-                explanation,
+            translationService.translateNarrative(explanation, lang),
                 localizedSolution,
                 translationService.translateActions(nextActions, lang),
                 translationService.translateActions(safetyWarnings, lang),
                 escalationInfo != null
-                        ? translationService.translate("Contact Expert", lang) + ": " + escalationInfo
-                        : null);
+                ? translationService.translate("Contact Expert", lang) + ": "
+                    + translationService.translateNarrative(escalationInfo, lang)
+                : null,
+            translationService.translateNarrative(weatherContext, lang),
+            translationService.translateNarrative(cropStageRelevance, lang),
+            translationService.translateNarrative(districtContext, lang),
+            localizedCandidates);
     }
 }

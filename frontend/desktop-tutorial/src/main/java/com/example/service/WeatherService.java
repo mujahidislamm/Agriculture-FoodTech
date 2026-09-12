@@ -1,8 +1,6 @@
 package com.example.service;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
 
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
@@ -12,16 +10,9 @@ import java.util.Map;
 @Service
 public class WeatherService {
 
-    private final RestClient restClient;
-    private final String apiKey;
     private final WBCropKnowledgeBase knowledgeBase;
 
-    public WeatherService(RestClient.Builder builder,
-                          @Value("${weather.api-key:}") String apiKey,
-                          @Value("${weather.base-url:https://api.open-meteo.com/v1}") String baseUrl,
-                          WBCropKnowledgeBase knowledgeBase) {
-        this.restClient = builder.baseUrl(baseUrl).build();
-        this.apiKey = apiKey;
+    public WeatherService(WBCropKnowledgeBase knowledgeBase) {
         this.knowledgeBase = knowledgeBase;
     }
 
@@ -210,34 +201,4 @@ public class WeatherService {
         return Math.round(value * 10.0) / 10.0;
     }
 
-    private Number asNumber(Object value) {
-        if (value instanceof Number number) {
-            return number;
-        }
-        if (value instanceof String string && !string.isBlank()) {
-            try {
-                return Double.parseDouble(string);
-            } catch (NumberFormatException ignored) {
-                return null;
-            }
-        }
-        return null;
-    }
-
-    private String describeWeatherCode(Number code) {
-        if (code == null) return "Current weather";
-        int weatherCodeInt = code.intValue();
-        return switch (weatherCodeInt) {
-            case 0 -> "Clear sky";
-            case 1, 2 -> "Partly cloudy";
-            case 3 -> "Cloudy";
-            case 45, 48 -> "Foggy";
-            case 51, 53, 55, 56, 57 -> "Drizzle";
-            case 61, 63, 65, 66, 67, 80 -> "Rain showers";
-            case 71, 73, 75, 77, 85, 86 -> "Snow";
-            case 81, 82 -> "Heavy rain";
-            case 95, 96, 99 -> "Thunderstorm";
-            default -> "Variable conditions";
-        };
-    }
 }

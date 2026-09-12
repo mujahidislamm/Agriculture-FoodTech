@@ -638,9 +638,28 @@ public class WBCropKnowledgeBase {
         DiseaseAdvisory exact = DISEASE_DB.get(modelClassName);
         if (exact != null) return exact;
 
-        // Fallback: model class names vary (underscores, Rice___X, Tomato leaf X).
-        // Normalise and match by suffix so detections still map to an advisory.
         String norm = normalize(modelClassName);
+                String alias = switch (norm) {
+                        case "tomato early blight leaf" -> "Tomato_Early_blight";
+                        case "tomato septoria leaf spot" -> "Tomato_Septoria_leaf_spot";
+                        case "tomato leaf bacterial spot" -> "Tomato_Bacterial_spot";
+                        case "tomato leaf late blight" -> "Tomato_Late_blight";
+                        case "tomato leaf mold" -> "Tomato_Leaf_Mold";
+                        case "tomato leaf mosaic virus" -> "Tomato__Tomato_mosaic_virus";
+                        case "tomato leaf yellow virus" -> "Tomato__Tomato_YellowLeaf__Curl_Virus";
+                        case "tomato two spotted spider mites leaf" -> "Tomato_Spider_mites_Two_spotted_spider_mite";
+                        case "bell pepper leaf spot" -> "Pepper__bell___Bacterial_spot";
+                        case "potato leaf early blight" -> "Potato___Early_blight";
+                        case "potato leaf late blight" -> "Potato___Late_blight";
+                        default -> null;
+                };
+                if (alias != null) {
+                        DiseaseAdvisory aliased = DISEASE_DB.get(alias);
+                        if (aliased != null) return aliased;
+                }
+
+                // Model class names vary across training datasets; match normalized names
+                // and suffixes so retrieved advisories survive harmless naming changes.
         for (Map.Entry<String, DiseaseAdvisory> entry : DISEASE_DB.entrySet()) {
             String keyNorm = normalize(entry.getKey());
             if (keyNorm.equals(norm) || keyNorm.endsWith(norm) || norm.endsWith(keyNorm)) {
@@ -655,6 +674,8 @@ public class WBCropKnowledgeBase {
                 .replace("___", " ")
                 .replace('_', ' ')
                 .replace("-", " ")
+                                .replaceAll("[^a-z0-9 ]", " ")
+                                .replaceAll("\\s+", " ")
                 .trim();
     }
 

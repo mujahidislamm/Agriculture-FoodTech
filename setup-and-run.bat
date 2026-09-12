@@ -1,0 +1,237 @@
+@echo off
+REM FasalSathi - Complete Setup and Launch Script
+REM This script handles all dependencies and starts the application
+
+setlocal enabledelayedexpansion
+cd /d "%~dp0"
+if not defined APP_URL set "APP_URL=http://localhost:8080"
+
+REM Color output
+for /f %%A in ('copy /Z "%~f0" nul') do set "BS=%%A"
+
+echo.
+echo =====================================================
+echo FasalSathi - Agricultural AI Advisor Setup
+echo =====================================================
+echo.
+
+REM ===== JAVA CHECK =====
+echo [1/4] Checking Java installation...
+REM Prefer the configured Java 25 LTS installation so the launcher matches pom.xml.
+for /d %%D in ("%LOCALAPPDATA%\Programs\Eclipse Adoptium\jdk-25*" "%LOCALAPPDATA%\jdks\jdk-25*" "C:\Program Files\Java\jdk-25*") do (
+  if exist "%%~D\bin\java.exe" (
+    set "JAVA_HOME=%%~D"
+    set "PATH=%%~D\bin;!PATH!"
+    goto java_ready
+  )
+)
+java -version >nul 2>&1
+if errorlevel 1 (
+  echo ERROR: Java JDK 25+ is required but not found.
+  echo Please install Java from: https://www.oracle.com/java/technologies/downloads/
+  echo Then add it to your system PATH and try again.
+  pause
+  exit /b 1
+)
+ :java_ready
+for /f "tokens=3" %%i in ('java -version 2^>^&1 ^| find "version"') do (
+  set JAVA_VERSION=%%~i
+  echo ✓ Java found: !JAVA_VERSION!
+)
+
+REM ===== MAVEN CHECK & INSTALL =====
+echo.
+echo [2/4] Checking Maven installation...
+where mvn >nul 2>&1
+if errorlevel 1 (
+  echo ! Maven not found in PATH. Attempting to locate or set up...
+  
+  REM Check common locations
+  set MAVEN_FOUND=0
+  for %%D in (
+    "%USERPROFILE%\.maven\maven-3.9.15"
+    "%USERPROFILE%\.maven\maven-3.10.0-rc-1"
+    "C:\Program Files\Apache\Maven"
+    "C:\Program Files\Maven"
+    "C:\apache-maven-3.9.9"
+  ) do (
+    if exist "%%~D\bin\mvn.cmd" (
+      set "MAVEN_HOME=%%~D"
+      set "PATH=%%~D\bin;!PATH!"
+      set MAVEN_FOUND=1
+      echo ✓ Maven found at: %%~D
+      goto maven_ready
+    )
+  )
+  
+  if !MAVEN_FOUND! equ 0 (
+    echo.
+    echo ! Maven is not installed. 
+    echo Installing Maven...
+    call :install_maven
+    if errorlevel 1 (
+      echo ERROR: Failed to install Maven automatically.
+      echo Please install Apache Maven 3.9+ from: https://maven.apache.org/download.cgi
+      echo Then add it to your system PATH and try again.
+      pause
+      exit /b 1
+    )
+  )
+)
+:maven_ready
+mvn --version | findstr "Apache Maven" >nul 2>&1
+if errorlevel 1 (
+  echo ERROR: Maven verification failed.
+  pause
+  exit /b 1
+)
+echo ✓ Maven is ready
+
+REM ===== NODE.JS CHECK =====
+echo.
+echo [3/4] Checking Node.js installation...
+where node >nul 2>&1
+if errorlevel 1 (
+  echo ERROR: Node.js 20+ is required but not found.
+  echo Please install Node.js from: https://nodejs.org/
+  echo Then add it to your system PATH and try again.
+  pause
+  exit /b 1
+)
+for /f "tokens=1" %%i in ('node --version') do (
+  set NODE_VERSION=%%i
+  echo ✓ Node.js found: !NODE_VERSION!
+)
+
+REM ===== NPM CHECK =====
+echo.
+echo [4/4] Checking npm...
+where npm >nul 2>&1
+if errorlevel 1 (
+  echo ERROR: npm not found in PATH.
+  pause
+  exit /b 1
+)
+echo ✓ npm is ready
+
+REM ===== PROJECT SETUP =====
+echo.
+echo =====================================================
+echo Starting FasalSathi Application
+echo =====================================================
+echo.
+echo The root run-app.bat launcher will open the website after startup.
+echo.
+
+REM Navigate to frontend and build
+REM The current React build is served by this backend. Keep build and runtime
+REM pointed at the same project so localhost:8080 cannot serve the old UI.
+set "BACKEND_DIR=%~dp0frontend\desktop-tutorial"
+set "FRONTEND_DIR=%BACKEND_DIR%\frontend"
+if not exist "%FRONTEND_DIR%\package.json" (
+  echo ERROR: Frontend project not found at %FRONTEND_DIR%
+  pause
+  exit /b 1
+)
+
+echo Building React frontend...
+pushd "%FRONTEND_DIR%"
+if not exist node_modules (
+  echo Installing frontend dependencies...
+  call npm ci --legacy-peer-deps
+  if errorlevel 1 (
+    echo ERROR: npm ci failed
+    popd
+    pause
+    exit /b 1
+  )
+)
+call npm run build
+if errorlevel 1 (
+  echo ERROR: Frontend build failed
+  popd
+  pause
+  exit /b 1
+)
+popd
+echo ✓ Frontend built successfully
+
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$index = Get-Content -Raw '%FRONTEND_DIR%\dist\index.html'; if ($index -notmatch 'index-[^ ]+\.js' -or $index -notmatch 'index-[^ ]+\.css') { exit 1 }" >nul 2>&1
+if errorlevel 1 (
+  echo ERROR: The current React build was not published to the selected backend.
+  pause
+  exit /b 1
+)
+echo ✓ Published build verified
+
+REM Start backend
+echo.
+echo Starting Spring Boot backend...
+set "HEALTH_URL=%APP_URL%/api/v1/health"
+set "SERVER_READY=0"
+REM Stop any older FasalSathi instance using the same port.
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$connection = Get-NetTCPConnection -LocalPort 8080 -State Listen -ErrorAction SilentlyContinue; if ($connection) { Stop-Process -Id $connection.OwningProcess -Force -ErrorAction SilentlyContinue }" >nul 2>&1
+for /l %%N in (1,1,10) do (
+  powershell -NoProfile -ExecutionPolicy Bypass -Command "if (Get-NetTCPConnection -LocalPort 8080 -State Listen -ErrorAction SilentlyContinue) { exit 1 } else { exit 0 }" >nul 2>&1
+  if not errorlevel 1 goto port_ready
+  timeout /t 1 /nobreak >nul
+)
+:port_ready
+pushd "%BACKEND_DIR%"
+start "FasalSathi Backend" "%ComSpec%" /k "title FasalSathi Backend Server && mvn spring-boot:run"
+popd
+
+REM Wait for backend to start
+echo Waiting for server to start...
+for /l %%N in (1,1,60) do (
+  powershell -NoProfile -ExecutionPolicy Bypass -Command "try { $response = Invoke-WebRequest -Uri '%HEALTH_URL%' -UseBasicParsing -TimeoutSec 2; if ($response.StatusCode -eq 200) { exit 0 } } catch {} ; exit 1" >nul 2>&1
+  if not errorlevel 1 (
+    set "SERVER_READY=1"
+    goto server_ready
+  )
+  timeout /t 2 /nobreak >nul
+)
+
+:server_ready
+if "%SERVER_READY%"=="0" (
+  echo.
+  echo ERROR: FasalSathi did not become ready within 120 seconds.
+  echo Check the FasalSathi Backend window for the startup error.
+  pause
+  exit /b 1
+)
+
+echo.
+echo ✓ FasalSathi backend is ready.
+echo.
+echo Close the FasalSathi backend window to stop the server.
+exit /b 0
+
+REM ===== MAVEN INSTALL FUNCTION =====
+:install_maven
+echo.
+echo Attempting automatic Maven installation...
+set "MAVEN_DOWNLOAD_URL=https://archive.apache.org/dist/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.zip"
+set "MAVEN_INSTALL_PATH=C:\apache-maven-3.9.9"
+
+if exist "%TEMP%\maven-download.zip" del "%TEMP%\maven-download.zip"
+
+echo Downloading Maven...
+powershell -Command "(New-Object System.Net.ServicePointManager).SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; Invoke-WebRequest -Uri '%MAVEN_DOWNLOAD_URL%' -OutFile '%TEMP%\maven-download.zip'" >nul 2>&1
+if errorlevel 1 (
+  echo Failed to download Maven
+  exit /b 1
+)
+
+echo Extracting Maven...
+powershell -Command "Expand-Archive -Path '%TEMP%\maven-download.zip' -DestinationPath 'C:\' -Force" >nul 2>&1
+if errorlevel 1 (
+  echo Failed to extract Maven
+  exit /b 1
+)
+
+set "PATH=%MAVEN_INSTALL_PATH%\bin;!PATH!"
+set "MAVEN_HOME=%MAVEN_INSTALL_PATH%"
+
+echo ✓ Maven installed at: %MAVEN_INSTALL_PATH%
+exit /b 0

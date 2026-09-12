@@ -58,4 +58,8 @@ export function healthCheck() {
   return api.get('/health');
 }
 
+export function getDiagnosisHistory() {
+  return api.get('/diagnosis-history');
+}
+
 export default api;

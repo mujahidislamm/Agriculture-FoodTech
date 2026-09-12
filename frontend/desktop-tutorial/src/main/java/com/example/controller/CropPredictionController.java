@@ -1,10 +1,14 @@
 package com.example.controller;
 
-import com.example.dto.CropMetadataDTO;
+import com.example.dto.CropMarketInfoDTO;
+import com.example.dto.HarvestInfoDTO;
+import com.example.dto.MandiPriceDTO;
 import com.example.dto.PredictionResponseDTO;
 import com.example.entity.PredictionLog;
 import com.example.repository.PredictionLogRepository;
 import com.example.service.AdvisoryService;
+import com.example.service.HarvestTimeService;
+import com.example.service.MandiPriceService;
 import com.example.service.MandiUpdates;
 import com.example.service.ModelInferenceService;
 import com.example.service.SpeechService;
@@ -12,11 +16,14 @@ import com.example.service.TranslationService;
 import com.example.service.WBCropKnowledgeBase;
 import com.example.service.WeatherService;
 import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.time.Instant;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -31,6 +38,8 @@ public class CropPredictionController {
     private final PredictionLogRepository predictionLogRepository;
     private final SpeechService speechService;
     private final MandiUpdates mandiUpdates;
+    private final HarvestTimeService harvestTimeService;
+    private final MandiPriceService mandiPriceService;
 
     public CropPredictionController(ModelInferenceService modelInferenceService,
                                     AdvisoryService advisoryService,
@@ -39,7 +48,9 @@ public class CropPredictionController {
                                     TranslationService translationService,
                                     PredictionLogRepository predictionLogRepository,
                                     SpeechService speechService,
-                                    MandiUpdates mandiUpdates) {
+                                    MandiUpdates mandiUpdates,
+                                    HarvestTimeService harvestTimeService,
+                                    MandiPriceService mandiPriceService) {
         this.modelInferenceService = modelInferenceService;
         this.advisoryService = advisoryService;
         this.weatherService = weatherService;
@@ -48,6 +59,8 @@ public class CropPredictionController {
         this.predictionLogRepository = predictionLogRepository;
         this.speechService = speechService;
         this.mandiUpdates = mandiUpdates;
+        this.harvestTimeService = harvestTimeService;
+        this.mandiPriceService = mandiPriceService;
     }
 
     /**
@@ -56,14 +69,14 @@ public class CropPredictionController {
      */
     @PostMapping(value = "/diagnose", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public PredictionResponseDTO diagnose(
-            @RequestPart("image") MultipartFile image,
-            @RequestPart(value = "cropType", required = false) String cropType,
-            @RequestPart(value = "cropStage", required = false) String cropStage,
-            @RequestPart(value = "district", required = false) String district,
-            @RequestPart(value = "latitude", required = false) String latitude,
-            @RequestPart(value = "longitude", required = false) String longitude,
-            @RequestPart(value = "observations", required = false) String observations,
-            @RequestPart(value = "language", required = false) String language) {
+            @RequestParam("image") MultipartFile image,
+            @RequestParam(value = "cropType", required = false) String cropType,
+            @RequestParam(value = "cropStage", required = false) String cropStage,
+            @RequestParam(value = "district", required = false) String district,
+            @RequestParam(value = "latitude", required = false) String latitude,
+            @RequestParam(value = "longitude", required = false) String longitude,
+            @RequestParam(value = "observations", required = false) String observations,
+            @RequestParam(value = "language", required = false) String language) {
 
         // 1. Run model inference
         Map<String, Double> predictions = modelInferenceService.predict(image);
@@ -145,6 +158,29 @@ public class CropPredictionController {
         return translationService.getAllPhrases();
     }
 
+    @GetMapping("/market-info/{cropName}")
+    public CropMarketInfoDTO getMarketInfoForCrop(@PathVariable("cropName") String cropName) {
+        HarvestInfoDTO harvest = harvestTimeService.getHarvestInfo(cropName);
+        List<MandiPriceDTO> prices = mandiPriceService.getPrices(cropName);
+        return new CropMarketInfoDTO(harvest, prices, Instant.now().toString());
+    }
+
+    @GetMapping("/market-info")
+    public Map<String, Object> getAllMarketInfo() {
+        List<CropMarketInfoDTO> items = new ArrayList<>();
+        for (String crop : harvestTimeService.getAvailableCrops()) {
+            items.add(new CropMarketInfoDTO(
+                    harvestTimeService.getHarvestInfo(crop),
+                    mandiPriceService.getPrices(crop),
+                    Instant.now().toString()));
+        }
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("crops", items);
+        result.put("liveApiAvailable", mandiPriceService.isLiveApiAvailable());
+        result.put("timestamp", Instant.now().toString());
+        return result;
+    }
+
     @GetMapping("/weather")
     public Map<String, Object> weather(@RequestParam(value = "lat", required = false) Double latitude,
                                       @RequestParam(value = "lon", required = false) Double longitude) {
@@ -195,6 +231,12 @@ public class CropPredictionController {
         return h;
     }
 
+    /** Returns the most recent local diagnosis records for the farmer history view. */
+    @GetMapping("/diagnosis-history")
+    public List<PredictionLog> diagnosisHistory() {
+        return predictionLogRepository.findTop50ByOrderByCreatedAtDesc();
+    }
+
     private Double parseDouble(String value) {
         if (value == null || value.isBlank()) return null;
         try {
@@ -202,5 +244,19 @@ public class CropPredictionController {
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, Object>> invalidRequest(IllegalArgumentException exception) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                "error", "INVALID_REQUEST",
+                "message", exception.getMessage() != null ? exception.getMessage() : "Please check the submitted image and fields."));
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, Object>> serviceFailure(IllegalStateException exception) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of(
+                "error", "SERVICE_UNAVAILABLE",
+                "message", "The diagnosis service is temporarily unavailable. Please try again."));
     }
 }
