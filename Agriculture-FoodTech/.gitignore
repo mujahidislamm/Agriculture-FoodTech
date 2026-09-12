@@ -1,0 +1,16 @@
+# Build artifacts
+target/
+*.class
+
+# Python caches
+__pycache__/
+*.pyc
+
+# Large datasets (excluded from repo)
+data/
+
+# Logs
+*.log
+
+# Trained models
+models/

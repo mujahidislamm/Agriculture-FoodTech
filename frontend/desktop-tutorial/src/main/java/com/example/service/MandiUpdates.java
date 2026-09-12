@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Reads live mandi price records from official public APIs when configured.
@@ -25,7 +24,7 @@ public class MandiUpdates {
             @Value("${mandi.api-key:}") String apiKey,
             @Value("${mandi.resource-id:}") String resourceId,
             @Value("${mandi.base-url:https://api.data.gov.in}") String baseUrl) {
-        this.restClient = builder.baseUrl(Objects.requireNonNull(baseUrl)).build();
+        this.restClient = builder.baseUrl(baseUrl).build();
         this.apiKey = apiKey;
         this.resourceId = resourceId;
     }
@@ -75,7 +74,7 @@ public class MandiUpdates {
 
             List<Map<String, Object>> parsed = recordsFromApi.stream()
                     .filter(Map.class::isInstance)
-                    .map(record -> toObjectMap((Map<?, ?>) record))
+                    .map(record -> (Map<String, Object>) record)
                     .map(entry -> {
                         Map<String, Object> normalized = new LinkedHashMap<>();
                         normalized.put("market", entry.getOrDefault("Market", entry.getOrDefault("market", "Unknown market")));
@@ -167,23 +166,6 @@ public class MandiUpdates {
      * Backward compatible method for existing callers.
      */
     public List<Map<String, Object>> getUpdates(String crop, String state, int limit) {
-        Object records = getLivePrices(crop, state, null, limit).get("records");
-        if (records instanceof List<?> recordList) {
-            return recordList.stream()
-                    .filter(Map.class::isInstance)
-                    .map(record -> toObjectMap((Map<?, ?>) record))
-                    .toList();
-        }
-        return Collections.emptyList();
-    }
-
-    private Map<String, Object> toObjectMap(Map<?, ?> source) {
-        Map<String, Object> result = new LinkedHashMap<>();
-        source.forEach((key, value) -> {
-            if (key != null) {
-                result.put(String.valueOf(key), value);
-            }
-        });
-        return result;
+        return (List<Map<String, Object>>) getLivePrices(crop, state, null, limit).getOrDefault("records", Collections.emptyList());
     }
 }

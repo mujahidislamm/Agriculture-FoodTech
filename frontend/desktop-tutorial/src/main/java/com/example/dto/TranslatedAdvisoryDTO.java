@@ -12,9 +12,5 @@ public record TranslatedAdvisoryDTO(
         String solutionSummary,
         List<String> nextActions,
         List<String> safetyWarnings,
-        String escalationInfo,
-        String weatherContext,
-        String cropStageRelevance,
-        String districtContext,
-        List<DiagnosisDetailDTO> candidates) {
+        String escalationInfo) {
 }
