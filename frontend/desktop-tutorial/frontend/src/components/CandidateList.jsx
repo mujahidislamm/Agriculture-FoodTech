@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 
-export default function CandidateList({ candidates, language = 'en' }) {
+export default function CandidateList({ candidates }) {
   const [expandedIndex, setExpandedIndex] = useState(0);
 
   if (!candidates || candidates.length === 0) return null;
-  const topPickLabel = { en: 'Top Pick', bn: 'প্রধান সম্ভাবনা', hi: 'मुख्य संभावना' }[language] || 'Top Pick';
 
   return (
     <div className="space-y-3">
@@ -26,7 +25,7 @@ export default function CandidateList({ candidates, language = 'en' }) {
               <div className="flex-1 mr-4">
                 <div className="flex items-center gap-2 mb-1.5">
                   <h4 className="font-medium text-gray-800">{candidate.diseaseName}</h4>
-                  {candidate.isTopPick && <span title={topPickLabel}>⭐</span>}
+                  {candidate.isTopPick && <span title="Top Pick">⭐</span>}
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div 

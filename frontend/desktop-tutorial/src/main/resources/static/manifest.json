@@ -1,0 +1,17 @@
+{
+  "name": "FasalSathi",
+  "short_name": "ফসলসাথী",
+  "description": "Multilingual crop stress advisory for West Bengal farmers",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a1a0f",
+  "theme_color": "#1a6b3c",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%231a6b3c' width='100' height='100' rx='20'/><text x='50' y='65' text-anchor='middle' fill='white' font-size='50'>🌾</text></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

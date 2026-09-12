@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#1a6b3c" />
+    <meta name="description" content="FasalSathi — multilingual crop stress advisory for West Bengal farmers" />
+    <title>FasalSathi · ফসলসাথী</title>
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+    <header class="app-bar">
+        <div class="brand">
+            <span class="logo">🌾</span>
+            <div>
+                <div class="app-title" id="appTitle">ফসলসাথী</div>
+                <div class="tagline" id="tagline">আপনার ফসল স্বাস্থ্য সহচর</div>
+            </div>
+        </div>
+        <div class="top-controls">
+            <span id="netBadge" class="badge online">🌐 অনলাইন</span>
+            <select id="langSelect" class="lang-select" aria-label="Language">
+                <option value="bn">বাংলা</option>
+                <option value="hi">हिंदी</option>
+                <option value="en">English</option>
+            </select>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- ── Input card ─────────────────────────────────────────── -->
+        <section class="card" id="inputCard">
+            <h2 class="card-title" id="formHeading">ফসলের তথ্য দিন</h2>
+
+            <label class="field">
+                <span id="lblDistrict">আপনার জেলা নির্বাচন করুন</span>
+                <select id="district" class="control"></select>
+            </label>
+
+            <label class="field">
+                <span id="lblCrop">আপনার ফসল নির্বাচন করুন</span>
+                <select id="crop" class="control"></select>
+            </label>
+
+            <label class="field">
+                <span id="lblStage">ফসলের পর্যায়</span>
+                <select id="stage" class="control"></select>
+            </label>
+
+            <div class="field">
+                <span id="lblPhoto">পাতার ছবি তুলুন বা বাছুন</span>
+                <div class="photo-row">
+                    <button type="button" class="btn secondary" id="captureBtn">📷 ছবি তুলুন</button>
+                    <button type="button" class="btn secondary" id="galleryBtn">🖼 গ্যালারি</button>
+                    <input type="file" id="fileInput" accept="image/*" capture="environment" hidden />
+                    <input type="file" id="galleryInput" accept="image/*" hidden />
+                </div>
+                <div class="photo-preview" id="photoPreview" hidden>
+                    <img id="previewImg" alt="Leaf preview" />
+                    <span class="compress-note" id="compressNote"></span>
+                </div>
+            </div>
+
+            <label class="field">
+                <span id="lblObs">আপনি কী দেখছেন বর্ণনা করুন (ঐচ্ছিক)</span>
+                <div class="obs-row">
+                    <textarea id="observations" class="control" rows="2"
+                        placeholder="যেমন: পাতা হলুদ হয়ে যাচ্ছে"></textarea>
+                    <button type="button" class="mic-btn" id="micBtn" title="Speak">🎤</button>
+                </div>
+            </label>
+
+            <button type="button" class="btn primary block" id="analyzeBtn">🔍 ফসল বিশ্লেষণ</button>
+            <p class="hint" id="lowBwHint">কম ব্যান্ডউইথের জন্য ছবি স্বয়ংক্রিয় সংকুচিত হবে।</p>
+        </section>
+
+        <!-- ── Result card ───────────────────────────────────────── -->
+        <section class="card result" id="resultCard" hidden>
+            <div class="verdict" id="verdictBadge"></div>
+
+            <h2 class="result-title" id="resultDisease"></h2>
+            <div class="confidence-wrap">
+                <div class="confidence-track"><div class="confidence-fill" id="confFill"></div></div>
+                <div class="confidence-label" id="confLabel"></div>
+            </div>
+
+            <div class="row-actions">
+                <button type="button" class="btn small" id="speakBtn">🔊 শুনুন</button>
+                <button type="button" class="btn small ghost" id="newBtn">↺ নতুন</button>
+            </div>
+
+            <div class="block">
+                <h3 id="hExplanation">ব্যাখ্যা</h3>
+                <p id="explanation" class="text"></p>
+            </div>
+
+            <div class="block" id="altBlock">
+                <h3 id="hAlt">সম্ভাব্য বিকল্প কারণ</h3>
+                <div id="alternatives"></div>
+            </div>
+
+            <div class="block">
+                <h3 id="hNext">পরবর্তী পদক্ষেপ</h3>
+                <ul id="nextSteps" class="steps"></ul>
+            </div>
+
+            <div class="block warn" id="safetyBlock">
+                <h3 id="hSafety">⚠ সুরক্ষা সতর্কতা</h3>
+                <ul id="safety" class="steps"></ul>
+            </div>
+
+            <div class="block">
+                <h3 id="hWeather">🌦 আবহাওয়ার প্রভাব</h3>
+                <p id="weather" class="text"></p>
+            </div>
+
+            <div class="block">
+                <h3 id="hStage">🌱 ফসলের পর্যায়ের তথ্য</h3>
+                <p id="stageInfo" class="text"></p>
+            </div>
+
+            <div class="block" id="districtBlock">
+                <h3 id="hDistrict">📍 অবস্থানের প্রসঙ্গ</h3>
+                <p id="districtInfo" class="text"></p>
+            </div>
+
+            <div class="block escalate" id="escalateBlock" hidden>
+                <h3 id="hEscalate">🆘 বিশেষজ্ঞ পরামর্শ</h3>
+                <p id="escalateText" class="text"></p>
+                <a id="callBtn" class="btn primary block call" href="#">📞 KVK বিশেষজ্ঞকে কল করুন</a>
+            </div>
+        </section>
+
+        <p id="status" class="status" hidden></p>
+    </main>
+
+    <footer class="footer">
+        <span id="kisan">📞 কিষাণ হেল্পলাইন: ১৮০০-১৮০-১৫৫১</span>
+        <span class="region">পশ্চিমবঙ্গ · West Bengal only</span>
+    </footer>
+
+    <script src="/i18n.js"></script>
+    <script src="/app.js"></script>
+</body>
+</html>

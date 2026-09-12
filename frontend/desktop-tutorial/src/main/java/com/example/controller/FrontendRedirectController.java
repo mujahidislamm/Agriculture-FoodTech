@@ -2,7 +2,6 @@ package com.example.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * Serves the single React interface from the Spring Boot application. Known
@@ -11,10 +10,8 @@ import jakarta.servlet.http.HttpServletResponse;
 @Controller
 public class FrontendRedirectController {
 
-    @GetMapping({"/", "/diagnose", "/tools", "/about", "/profile", "/market-info.html"})
-    public String openFrontend(HttpServletResponse response) {
-        response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
-        response.setHeader("Pragma", "no-cache");
+    @GetMapping({"/", "/diagnose", "/about", "/market-info.html"})
+    public String openFrontend() {
         return "forward:/index.html";
     }
 }

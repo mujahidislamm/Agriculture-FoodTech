@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f1923" />
+    <meta name="description" content="FasalSathi Market Intelligence — Live mandi prices and best harvest times for West Bengal crops" />
+    <title>FasalSathi · Market Info & Harvest Calendar</title>
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" href="/fasalsathi-icon.svg" type="image/svg+xml" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+        /* ── Reset & Base ──────────────────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #0a0f14;
+            --surface: #111921;
+            --surface2: #182230;
+            --card: #141e2a;
+            --border: #1e2d3d;
+            --border-glow: rgba(34,197,94,0.15);
+            --text: #e8edf3;
+            --text2: #8899aa;
+            --text3: #5a6f82;
+            --accent: #22c55e;
+            --accent2: #16a34a;
+            --accent-glow: rgba(34,197,94,0.12);
+            --gold: #f59e0b;
+            --gold-glow: rgba(245,158,11,0.12);
+            --red: #ef4444;
+            --red-glow: rgba(239,68,68,0.12);
+            --blue: #3b82f6;
+            --blue-glow: rgba(59,130,246,0.12);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --shadow: 0 4px 24px rgba(0,0,0,0.3);
+            --shadow-lg: 0 12px 48px rgba(0,0,0,0.5);
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── Header ────────────────────────────────────────────── */
+        .header {
+            background: linear-gradient(135deg, #0d1520 0%, #111f2f 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(12px);
+        }
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text);
+        }
+        .header-brand .logo { font-size: 28px; }
+        .header-brand .title {
+            font-weight: 800;
+            font-size: 18px;
+            background: linear-gradient(135deg, var(--accent) 0%, #4ade80 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .header-brand .subtitle { font-size: 11px; color: var(--text3); font-weight: 500; letter-spacing: 0.5px; }
+        .nav-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: var(--surface2);
+            color: var(--text2);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            border: 1px solid var(--border);
+            transition: all 0.2s ease;
+        }
+        .nav-link:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+        /* ── Hero ──────────────────────────────────────────────── */
+        .hero {
+            padding: 48px 24px 32px;
+            text-align: center;
+            background: linear-gradient(180deg, rgba(34,197,94,0.06) 0%, transparent 100%);
+        }
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            background: var(--accent-glow);
+            border: 1px solid rgba(34,197,94,0.2);
+            color: var(--accent);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 16px;
+        }
+        .hero h1 {
+            font-size: clamp(24px, 5vw, 36px);
+            font-weight: 900;
+            line-height: 1.2;
+            margin-bottom: 8px;
+        }
+        .hero h1 .green { color: var(--accent); }
+        .hero p { color: var(--text2); font-size: 15px; max-width: 560px; margin: 0 auto; }
+
+        /* ── Container ─────────────────────────────────────────── */
+        .container { max-width: 1000px; margin: 0 auto; padding: 0 20px 80px; }
+
+        /* ── Crop Selector ─────────────────────────────────────── */
+        .selector-section {
+            margin: 24px 0 32px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        .selector-label { font-size: 13px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; }
+        .crop-chips {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            max-width: 700px;
+        }
+        .crop-chip {
+            padding: 8px 16px;
+            border-radius: 24px;
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            color: var(--text2);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            user-select: none;
+        }
+        .crop-chip:hover { border-color: var(--accent); color: var(--text); background: var(--surface2); transform: translateY(-1px); }
+        .crop-chip.active {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+            border-color: var(--accent);
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(34,197,94,0.3);
+            transform: translateY(-2px);
+        }
+
+        /* ── Cards ─────────────────────────────────────────────── */
+        .info-grid { display: grid; grid-template-columns: 1fr; gap: 24px; }
+        @media (min-width: 768px) {
+            .info-grid { grid-template-columns: 1fr 1fr; }
+            .info-grid .full-width { grid-column: 1 / -1; }
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            animation: fadeUp 0.5s ease forwards;
+            opacity: 0;
+            transform: translateY(12px);
+        }
+        @keyframes fadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .card:nth-child(1) { animation-delay: 0.05s; }
+        .card:nth-child(2) { animation-delay: 0.1s; }
+        .card:nth-child(3) { animation-delay: 0.15s; }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .card-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+        .card-icon.green { background: var(--accent-glow); border: 1px solid rgba(34,197,94,0.2); }
+        .card-icon.gold { background: var(--gold-glow); border: 1px solid rgba(245,158,11,0.2); }
+        .card-icon.blue { background: var(--blue-glow); border: 1px solid rgba(59,130,246,0.2); }
+        .card-icon.red { background: var(--red-glow); border: 1px solid rgba(239,68,68,0.2); }
+
+        .card-title { font-size: 16px; font-weight: 700; }
+        .card-subtitle { font-size: 12px; color: var(--text3); margin-top: 2px; }
+
+        /* ── Info Rows ─────────────────────────────────────────── */
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+            gap: 12px;
+        }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { font-size: 12px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; min-width: 100px; flex-shrink: 0; }
+        .info-value { font-size: 14px; color: var(--text); text-align: right; flex: 1; }
+
+        /* ── Relevance Badge ───────────────────────────────────── */
+        .relevance {
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            line-height: 1.4;
+        }
+        .relevance.active { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25); color: #4ade80; }
+        .relevance.soon { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.25); color: #fbbf24; }
+        .relevance.waiting { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.25); color: #60a5fa; }
+
+        /* ── Indicators List ───────────────────────────────────── */
+        .indicator-list { list-style: none; padding: 0; }
+        .indicator-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(30,45,61,0.5);
+            font-size: 13px;
+            color: var(--text2);
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            line-height: 1.5;
+        }
+        .indicator-list li:last-child { border-bottom: none; }
+        .indicator-list li::before {
+            content: '✦';
+            color: var(--accent);
+            font-size: 10px;
+            margin-top: 4px;
+            flex-shrink: 0;
+        }
+
+        /* ── Price Table ───────────────────────────────────────── */
+        .price-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        .price-table thead th {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 2px solid var(--border);
+            white-space: nowrap;
+        }
+        .price-table tbody tr {
+            transition: background 0.15s ease;
+        }
+        .price-table tbody tr:hover { background: rgba(34,197,94,0.04); }
+        .price-table tbody td {
+            padding: 12px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+        .price-table .market-name { font-weight: 600; color: var(--text); }
+        .price-table .district-name { color: var(--text3); font-size: 12px; }
+        .price-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 13px;
+            font-variant-numeric: tabular-nums;
+        }
+        .price-tag.min { background: var(--blue-glow); color: #60a5fa; }
+        .price-tag.max { background: var(--red-glow); color: #f87171; }
+        .price-tag.modal { background: var(--accent-glow); color: #4ade80; }
+
+        .live-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: inline-block;
+            margin-right: 4px;
+            animation: pulse 2s ease infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,197,94,0.4); }
+            50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+        }
+
+        .fallback-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: rgba(245,158,11,0.1);
+            border: 1px solid rgba(245,158,11,0.2);
+            color: #fbbf24;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* ── Loading / Empty States ────────────────────────────── */
+        .loading-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            padding: 48px 24px;
+            color: var(--text3);
+        }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .empty-state { padding: 32px; text-align: center; color: var(--text3); font-size: 14px; }
+
+        /* ── Footer ────────────────────────────────────────────── */
+        .page-footer {
+            text-align: center;
+            padding: 24px;
+            color: var(--text3);
+            font-size: 12px;
+            border-top: 1px solid var(--border);
+        }
+        .page-footer a { color: var(--accent); text-decoration: none; }
+        .page-footer a:hover { text-decoration: underline; }
+
+        /* ── Responsive scrollable table ───────────────────────── */
+        .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -8px; padding: 0 8px; }
+
+        /* ── Status bar for data source ─────────────────────────── */
+        .data-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border-radius: var(--radius-sm);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--text2);
+            margin-bottom: 24px;
+        }
+        .data-status .dot {
+            width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+        }
+        .data-status .dot.live { background: var(--accent); }
+        .data-status .dot.offline { background: var(--gold); }
+
+        /* ── All-crops overview table ──────────────────────────── */
+        .overview-table { width: 100%; border-collapse: collapse; }
+        .overview-table th {
+            font-size: 11px; font-weight: 700; color: var(--text3);
+            text-transform: uppercase; letter-spacing: 0.5px;
+            padding: 10px 12px; text-align: left;
+            border-bottom: 2px solid var(--border);
+            position: sticky; top: 0; background: var(--card);
+        }
+        .overview-table td {
+            padding: 12px; font-size: 13px;
+            border-bottom: 1px solid var(--border);
+        }
+        .overview-table tbody tr { cursor: pointer; transition: background 0.15s; }
+        .overview-table tbody tr:hover { background: rgba(34,197,94,0.06); }
+        .overview-table .crop-name { font-weight: 700; color: var(--accent); }
+
+        @media (max-width: 600px) {
+            .hero { padding: 32px 16px 20px; }
+            .card { padding: 16px; }
+            .info-row { flex-direction: column; gap: 4px; }
+            .info-value { text-align: left; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── Header ─────────────────────────────────────────────────── -->
+<header class="header">
+    <a href="/" class="header-brand">
+        <span class="logo">🌾</span>
+        <div>
+            <div class="title">FasalSathi</div>
+            <div class="subtitle">MARKET INTELLIGENCE</div>
+        </div>
+    </a>
+    <a href="/" class="nav-link" id="navBack">🔬 Diagnosis</a>
+</header>
+
+<!-- ── Hero ────────────────────────────────────────────────────── -->
+<section class="hero">
+    <div class="hero-badge">📊 Live Market Data</div>
+    <h1>Harvest Calendar <span class="green">&</span> Mandi Prices</h1>
+    <p>Know the best time to harvest your crop and check today's market prices across West Bengal mandis.</p>
+</section>
+
+<!-- ── Main ────────────────────────────────────────────────────── -->
+<div class="container">
+
+    <!-- Data Source Status -->
+    <div class="data-status" id="dataStatus">
+        <span class="dot offline" id="statusDot"></span>
+        <span id="statusText">Checking data source…</span>
+    </div>
+
+    <!-- Crop Selector Chips -->
+    <div class="selector-section">
+        <div class="selector-label">Select a Crop</div>
+        <div class="crop-chips" id="cropChips">
+            <!-- Populated by JS -->
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-state" id="loadingState" style="display:none;">
+        <div class="spinner"></div>
+        <span>Fetching market data…</span>
+    </div>
+
+    <!-- Detail View (single crop selected) -->
+    <div id="detailView" style="display:none;">
+        <div class="info-grid">
+            <!-- Harvest Calendar Card -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon green">🗓️</div>
+                    <div>
+                        <div class="card-title" id="harvestTitle">Harvest Calendar</div>
+                        <div class="card-subtitle" id="harvestCrop">—</div>
+                    </div>
+                </div>
+                <div id="harvestDetails">
+                    <div class="info-row"><span class="info-label">Season</span><span class="info-value" id="hSeason">—</span></div>
+                    <div class="info-row"><span class="info-label">Sowing</span><span class="info-value" id="hSowing">—</span></div>
+                    <div class="info-row"><span class="info-label">Harvest</span><span class="info-value" id="hHarvest">—</span></div>
+                    <div class="info-row"><span class="info-label">Duration</span><span class="info-value" id="hDuration">—</span></div>
+                </div>
+                <div class="relevance waiting" id="hRelevance">—</div>
+            </div>
+
+            <!-- Harvest Indicators Card -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon gold">🔍</div>
+                    <div>
+                        <div class="card-title">Harvest Maturity Indicators</div>
+                        <div class="card-subtitle">How to know your crop is ready</div>
+                    </div>
+                </div>
+                <ul class="indicator-list" id="indicatorList">
+                    <li>Select a crop to see indicators</li>
+                </ul>
+            </div>
+
+            <!-- Mandi Prices Card (full width) -->
+            <div class="card full-width">
+                <div class="card-header">
+                    <div class="card-icon blue">💰</div>
+                    <div>
+                        <div class="card-title">Mandi Prices — West Bengal</div>
+                        <div class="card-subtitle" id="priceSource">—</div>
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table class="price-table" id="priceTable">
+                        <thead>
+                            <tr>
+                                <th>Market</th>
+                                <th>District</th>
+                                <th>Min Price</th>
+                                <th>Max Price</th>
+                                <th>Modal Price</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="priceBody">
+                            <tr><td colspan="6" class="empty-state">Select a crop to see prices</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- All Crops Overview (default) -->
+    <div id="overviewView">
+        <div class="card full-width" style="animation-delay:0.05s;">
+            <div class="card-header">
+                <div class="card-icon green">🌾</div>
+                <div>
+                    <div class="card-title">All Crops Overview</div>
+                    <div class="card-subtitle">Click any crop for detailed harvest & price info</div>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table class="overview-table" id="overviewTable">
+                    <thead>
+                        <tr>
+                            <th>Crop</th>
+                            <th>Season</th>
+                            <th>Harvest Window</th>
+                            <th>Price Range (₹/Q)</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="overviewBody">
+                        <tr><td colspan="5" class="empty-state">Loading…</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ── Footer ─────────────────────────────────────────────────── -->
+<footer class="page-footer">
+    <p>FasalSathi Market Intelligence · Data from <a href="https://data.gov.in" target="_blank" rel="noopener">data.gov.in</a> & ICAR-KVK advisories</p>
+    <p style="margin-top:4px;">📞 Kisan Helpline: 1800-180-1551 · West Bengal</p>
+</footer>
+
+<script>
+(function () {
+    'use strict';
+
+    const API_BASE = window.location.origin + '/api/v1';
+    const CROP_EMOJIS = {
+        Rice: '🌾', Potato: '🥔', Wheat: '🌿', Maize: '🌽', Tomato: '🍅',
+        Brinjal: '🍆', Chilli: '🌶️', Jute: '🧶', Mustard: '🟡', Tea: '🍵', Mango: '🥭'
+    };
+    const CROP_LIST = Object.keys(CROP_EMOJIS);
+
+    let allData = null;
+    let selectedCrop = null;
+
+    // ── DOM refs ──────────────────────────────────────────────
+    const cropChips = document.getElementById('cropChips');
+    const loadingState = document.getElementById('loadingState');
+    const detailView = document.getElementById('detailView');
+    const overviewView = document.getElementById('overviewView');
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+
+    // ── Init ──────────────────────────────────────────────────
+    buildCropChips();
+    fetchAllData();
+
+    function buildCropChips() {
+        CROP_LIST.forEach(crop => {
+            const chip = document.createElement('div');
+            chip.className = 'crop-chip';
+            chip.dataset.crop = crop;
+            chip.textContent = (CROP_EMOJIS[crop] || '🌱') + ' ' + crop;
+            chip.addEventListener('click', () => selectCrop(crop));
+            cropChips.appendChild(chip);
+        });
+    }
+
+    function selectCrop(crop) {
+        if (selectedCrop === crop) {
+            // Deselect → show overview
+            selectedCrop = null;
+            cropChips.querySelectorAll('.crop-chip').forEach(c => c.classList.remove('active'));
+            detailView.style.display = 'none';
+            overviewView.style.display = '';
+            return;
+        }
+
+        selectedCrop = crop;
+        cropChips.querySelectorAll('.crop-chip').forEach(c => {
+            c.classList.toggle('active', c.dataset.crop === crop);
+        });
+        overviewView.style.display = 'none';
+        detailView.style.display = '';
+        loadingState.style.display = 'flex';
+
+        // Re-animate cards
+        detailView.querySelectorAll('.card').forEach(c => {
+            c.style.animation = 'none';
+            c.offsetHeight; // reflow
+            c.style.animation = '';
+        });
+
+        fetchCropDetail(crop);
+    }
+
+    // ── Fetch all crops overview ──────────────────────────────
+    async function fetchAllData() {
+        try {
+            const resp = await fetch(API_BASE + '/market-info');
+            if (!resp.ok) throw new Error('API error ' + resp.status);
+            allData = await resp.json();
+
+            // Update status
+            if (allData.liveApiAvailable) {
+                statusDot.classList.remove('offline');
+                statusDot.classList.add('live');
+                statusText.textContent = 'Connected to data.gov.in — Live mandi prices';
+            } else {
+                statusText.textContent = 'Using representative price data (set DATA_GOV_API_KEY for live prices)';
+            }
+
+            renderOverview(allData.crops);
+        } catch (err) {
+            console.error('Failed to fetch overview:', err);
+            statusText.textContent = 'Server unreachable — start the backend with mvn spring-boot:run';
+            document.getElementById('overviewBody').innerHTML =
+                '<tr><td colspan="5" class="empty-state">⚠ Could not connect to backend API. Make sure the server is running.</td></tr>';
+        }
+    }
+
+    function renderOverview(crops) {
+        const tbody = document.getElementById('overviewBody');
+        if (!crops || !crops.length) {
+            tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No data available</td></tr>';
+            return;
+        }
+        tbody.innerHTML = crops.map(c => {
+            const h = c.harvestInfo;
+            const prices = c.mandiPrices || [];
+            const minP = prices.length ? Math.min(...prices.map(p => p.minPrice)) : 0;
+            const maxP = prices.length ? Math.max(...prices.map(p => p.maxPrice)) : 0;
+            const cropName = h ? h.crop : 'Unknown';
+            const emoji = CROP_EMOJIS[cropName] || '🌱';
+
+            // Determine status from relevance text
+            let statusHtml = '';
+            if (h && h.currentRelevance) {
+                if (h.currentRelevance.includes('ACTIVE')) {
+                    statusHtml = '<span style="color:#4ade80;font-weight:700;">🟢 Harvest Now</span>';
+                } else if (h.currentRelevance.includes('next month')) {
+                    statusHtml = '<span style="color:#fbbf24;font-weight:700;">🟡 Coming Soon</span>';
+                } else {
+                    statusHtml = '<span style="color:#60a5fa;font-weight:600;">⏳ Upcoming</span>';
+                }
+            }
+
+            return `<tr onclick="document.querySelector('[data-crop=\\'${cropName}\\']')?.click()">
+                <td class="crop-name">${emoji} ${cropName}</td>
+                <td>${h ? h.season : '—'}</td>
+                <td>${h ? h.harvestWindow : '—'}</td>
+                <td>${prices.length ? '₹' + formatNum(minP) + ' – ₹' + formatNum(maxP) : '—'}</td>
+                <td>${statusHtml}</td>
+            </tr>`;
+        }).join('');
+    }
+
+    // ── Fetch single crop detail ─────────────────────────────
+    async function fetchCropDetail(crop) {
+        try {
+            const resp = await fetch(API_BASE + '/market-info/' + encodeURIComponent(crop));
+            if (!resp.ok) throw new Error('API error ' + resp.status);
+            const data = await resp.json();
+            loadingState.style.display = 'none';
+            renderDetail(data);
+        } catch (err) {
+            loadingState.style.display = 'none';
+            console.error('Failed to fetch crop detail:', err);
+        }
+    }
+
+    function renderDetail(data) {
+        const h = data.harvestInfo;
+        const prices = data.mandiPrices || [];
+
+        // ── Harvest Calendar ──
+        if (h) {
+            document.getElementById('harvestCrop').textContent = (CROP_EMOJIS[h.crop] || '') + ' ' + h.crop;
+            document.getElementById('hSeason').textContent = h.season || '—';
+            document.getElementById('hSowing').textContent = h.sowingWindow || '—';
+            document.getElementById('hHarvest').textContent = h.harvestWindow || '—';
+            document.getElementById('hDuration').textContent = h.durationDays || '—';
+
+            // Relevance
+            const relEl = document.getElementById('hRelevance');
+            relEl.textContent = h.currentRelevance || '';
+            relEl.className = 'relevance';
+            if (h.currentRelevance && h.currentRelevance.includes('ACTIVE')) {
+                relEl.classList.add('active');
+            } else if (h.currentRelevance && h.currentRelevance.includes('next month')) {
+                relEl.classList.add('soon');
+            } else {
+                relEl.classList.add('waiting');
+            }
+
+            // Indicators
+            const list = document.getElementById('indicatorList');
+            if (h.bestHarvestIndicators && h.bestHarvestIndicators.length) {
+                list.innerHTML = h.bestHarvestIndicators.map(ind => `<li>${ind}</li>`).join('');
+            } else {
+                list.innerHTML = '<li>No specific indicators available</li>';
+            }
+        }
+
+        // ── Mandi Prices ──
+        const priceBody = document.getElementById('priceBody');
+        const priceSource = document.getElementById('priceSource');
+
+        if (prices.length === 0) {
+            priceBody.innerHTML = '<tr><td colspan="6" class="empty-state">No price data available for this crop</td></tr>';
+            priceSource.textContent = 'No data';
+            return;
+        }
+
+        const isLive = prices[0].live; // 'isLive' maps to 'live' in JSON
+        priceSource.innerHTML = isLive
+            ? '<span class="live-dot"></span> Live from data.gov.in'
+            : '<span class="fallback-badge">⚡ Representative WB prices</span>';
+
+        priceBody.innerHTML = prices.map(p => `
+            <tr>
+                <td class="market-name">${p.market}</td>
+                <td class="district-name">${p.district}</td>
+                <td><span class="price-tag min">₹${formatNum(p.minPrice)}</span></td>
+                <td><span class="price-tag max">₹${formatNum(p.maxPrice)}</span></td>
+                <td><span class="price-tag modal">₹${formatNum(p.modalPrice)}</span></td>
+                <td style="color:var(--text3);font-size:12px;">${p.arrivalDate || '—'}</td>
+            </tr>
+        `).join('');
+    }
+
+    // ── Helpers ───────────────────────────────────────────────
+    function formatNum(n) {
+        if (n == null || isNaN(n)) return '—';
+        return Number(n).toLocaleString('en-IN');
+    }
+})();
+</script>
+
+</body>
+</html>

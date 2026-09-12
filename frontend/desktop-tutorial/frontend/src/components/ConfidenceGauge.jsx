@@ -1,10 +1,9 @@
 import React from 'react';
 
-export default function ConfidenceGauge({ value, language = 'en' }) {
+export default function ConfidenceGauge({ value }) {
   const radius = 45;
   const circumference = 2 * Math.PI * radius; // ~283
   const percentage = Math.round(value * 100);
-  const confidenceLabel = { en: 'Confidence', bn: 'আত্মবিশ্বাস', hi: 'विश्वास' }[language] || 'Confidence';
   const strokeDashoffset = circumference - (value * circumference);
   
   let colorClass = 'text-red-500';
@@ -39,7 +38,6 @@ export default function ConfidenceGauge({ value, language = 'en' }) {
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-xl font-bold text-gray-800">{percentage}%</span>
-        <span className="sr-only">{confidenceLabel}</span>
       </div>
     </div>
   );
